@@ -15,6 +15,7 @@ import EmployeeDashbaord from './pages/employee/Dashboard';
 import ProfilePage from './pages/manager/Profile';
 import EmployeeProfilePage from './pages/employee/Profile';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import LiveTracking from './pages/employee/LiveTracking';
 
 const routes = createBrowserRouter([
 	{
@@ -74,6 +75,7 @@ const routes = createBrowserRouter([
 			{ path: 'submit-expense', element: <SubmitExpense /> },
 			{ path: 'expenses-history', element: <ExpensesHistory /> },
 			{ path: 'profile', element: <EmployeeProfilePage /> },
+			{ path: 'tracking/:id', element: <LiveTracking /> }
 		],
 	},
 	{

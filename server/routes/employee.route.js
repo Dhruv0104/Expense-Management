@@ -19,5 +19,6 @@ router.post(
 );
 router.get('/fetch-expenses', asyncRouteHandler(employeeController.fetchExpenses));
 router.get('/profile', asyncRouteHandler(employeeController.fetchInfo));
+router.get('/tracking/:id', asyncRouteHandler(employeeController.fetchExpenseById));
 
 module.exports = router;

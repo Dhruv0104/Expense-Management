@@ -70,15 +70,14 @@ export default function ExpensesHistory() {
 		const status = row.status;
 		return (
 			<span
-				className={`px-3 py-1 rounded-full text-sm font-medium ${
-					status === 'Approved'
-						? 'bg-green-100 text-green-800'
-						: status === 'Rejected'
+				className={`px-3 py-1 rounded-full text-sm font-medium ${status === 'Approved'
+					? 'bg-green-100 text-green-800'
+					: status === 'Rejected'
 						? 'bg-red-100 text-red-800'
 						: status === 'Pending'
-						? 'bg-yellow-100 text-yellow-800'
-						: 'bg-gray-200 text-gray-800'
-				}`}
+							? 'bg-yellow-100 text-yellow-800'
+							: 'bg-gray-200 text-gray-800'
+					}`}
 			>
 				{status}
 			</span>
@@ -90,8 +89,8 @@ export default function ExpensesHistory() {
 			<Button
 				className="p-button-rounded p-button-secondary p-button-text"
 				icon={<SquareArrowOutUpRight size={20} />}
-				onClick={() => navigate(`/expenses/tracking/${row.date}`)}
-				id={`track-btn-${row.date}`}
+				onClick={() => navigate(`/employee/tracking/${row._id}`)}
+			// id={`track-btn-${row.date}`}
 			/>
 			<Tooltip target={`#track-btn-${row.date}`} content="Go to tracking" position="top" />
 		</>
@@ -384,7 +383,7 @@ export default function ExpensesHistory() {
 							headerClassName="bg-primary-border text-white text-lg font-semibold border border-gray-300 text-center"
 						/>
 						<Column
-							header="Action"
+							header="Live Tracking"
 							body={actionTemplate}
 							bodyClassName="text-text text-md border border-gray-300 px-3 py-2 text-center"
 							headerClassName="bg-primary-border text-white text-lg font-semibold border border-gray-300 text-center"

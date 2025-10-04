@@ -141,7 +141,7 @@ async function addExpenseByOCR(req, res) {
 				amount: finalAmount || 0,
 				currency: 'INR',
 				remarks: 'Auto-generated from OCR',
-				description,
+				description: '-',
 				receipt: receiptPath.slice(6),
 				status: hasPending ? 'DRAFT' : 'PENDING',
 			};
@@ -204,9 +204,31 @@ async function fetchInfo(req, res) {
 	res.json({ data: details });
 }
 
+async function fetchExpenseById(req, res) {
+	try {
+		const { id } = req.params;
+
+		const expense = await expenseModel
+			.findById(id)
+			.populate('userId', 'name email')
+			.populate('paidBy', 'name email')
+			.populate('approverDecisions.userId', 'name email');
+
+		if (!expense) {
+			return res.status(404).json({ success: false, message: 'Expense not found' });
+		}
+
+		res.json({ success: true, data: expense });
+	} catch (err) {
+		console.error(err);
+		res.status(500).json({ success: false, message: 'Failed to fetch expense' });
+	}
+}
+
 module.exports = {
 	addExpense,
 	addExpenseByOCR,
 	fetchExpenses,
 	fetchInfo,
+	fetchExpenseById,
 };
