@@ -12,5 +12,6 @@ router.post(
 	upload.single('receipt'),
 	asyncRouteHandler(employeeController.addExpense)
 );
+router.get('/fetch-expenses', asyncRouteHandler(employeeController.fetchExpenses));
 
 module.exports = router;

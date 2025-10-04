@@ -33,6 +33,37 @@ async function addExpense(req, res) {
 	}
 }
 
+async function fetchExpenses(req, res) {
+	try {
+		const companyId = res.locals.user.companyId;
+		const userId = res.locals.user._id;
+
+		// Fetch all expenses by user's company (or limit to user if required)
+		const expenses = await expenseModel
+			.find({ isActive: true, userId })
+			.populate('paidBy', 'name')
+			.sort({ createdAt: -1 });
+
+		const formatted = expenses.map((e) => ({
+			_id: e._id,
+			title: e.title,
+			date: e.date ? e.date.toISOString().split('T')[0] : '-',
+			category: e.category || '-',
+			amount: e.amount,
+			currency: e.currency || 'USD',
+			status: e.status.charAt(0).toUpperCase() + e.status.slice(1).toLowerCase(), // e.g. Approved
+			paidBy: e.paidBy?.name || '-',
+			remarks: e.description || '-',
+		}));
+
+		res.json({ success: true, data: formatted });
+	} catch (err) {
+		console.error(err);
+		res.status(500).json({ success: false, message: 'Failed to fetch expenses' });
+	}
+}
+
 module.exports = {
 	addExpense,
+	fetchExpenses,
 };

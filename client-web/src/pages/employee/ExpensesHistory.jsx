@@ -11,53 +11,45 @@ import {
 	SquareArrowOutUpRight,
 } from 'lucide-react';
 import PageLayout from '../../components/layout/PageLayout';
+import { fetchGet } from '../../utils/fetch.utils';
 
 export default function ExpensesHistory() {
-	const dummyExpenses = [
-		{
-			date: '2023-10-01',
-			category: 'Travel',
-			amount: 500,
-			status: 'Approved',
-			title: 'Flight Ticket',
-			paidBy: 'Alice',
-			remarks: 'Business trip',
-		},
-		{
-			date: '2023-10-02',
-			category: 'Food',
-			amount: 100,
-			status: 'Pending',
-			title: 'Lunch',
-			paidBy: 'Bob',
-			remarks: 'Team lunch',
-		},
-		{
-			date: '2023-10-03',
-			category: 'Misc',
-			amount: 200,
-			status: 'Rejected',
-			title: 'Stationery',
-			paidBy: 'Alice',
-			remarks: 'Office supplies',
-		},
-		{
-			date: '2023-10-04',
-			category: 'Misc',
-			amount: 300,
-			status: 'Draft',
-			title: 'Taxi',
-			paidBy: 'Charlie',
-			remarks: 'Airport pickup',
-		},
-	];
 
 	const [filters, setFilters] = useState({});
 	const [globalFilterValue, setGlobalFilterValue] = useState('');
 	const [rowsPerPage, setRowsPerPage] = useState(5);
 	const [currentPage, setCurrentPage] = useState(0);
+	const [expenses, setExpenses] = useState([]);
 
 	const navigate = useNavigate();
+	const fetchExpenses = async () => {
+		try {
+			const res = await fetchGet({ pathName: 'employee/fetch-expenses' });
+			if (res?.success) {
+				setExpenses(res.data);
+				computeTotals(res.data);
+			}
+		} catch (err) {
+			console.error(err);
+		}
+	};
+
+	const computeTotals = (data) => {
+		const draftTotal = data
+			.filter((e) => e.status.toUpperCase() === 'DRAFT')
+			.reduce((acc, curr) => acc + curr.amount, 0);
+		const pendingTotal = data
+			.filter((e) => e.status.toUpperCase() === 'PENDING')
+			.reduce((acc, curr) => acc + curr.amount, 0);
+		const approvedTotal = data
+			.filter((e) => e.status.toUpperCase() === 'APPROVED')
+			.reduce((acc, curr) => acc + curr.amount, 0);
+		setTotals({ Draft: draftTotal, Pending: pendingTotal, Approved: approvedTotal });
+	};
+
+	useEffect(() => {
+		fetchExpenses();
+	}, []);
 
 	const customSortIcon = ({ sortOrder }) => (
 		<span>
@@ -75,15 +67,14 @@ export default function ExpensesHistory() {
 		const status = row.status;
 		return (
 			<span
-				className={`px-3 py-1 rounded-full text-sm font-medium ${
-					status === 'Approved'
-						? 'bg-green-100 text-green-800'
-						: status === 'Rejected'
+				className={`px-3 py-1 rounded-full text-sm font-medium ${status === 'Approved'
+					? 'bg-green-100 text-green-800'
+					: status === 'Rejected'
 						? 'bg-red-100 text-red-800'
 						: status === 'Pending'
-						? 'bg-yellow-100 text-yellow-800'
-						: 'bg-gray-200 text-gray-800'
-				}`}
+							? 'bg-yellow-100 text-yellow-800'
+							: 'bg-gray-200 text-gray-800'
+					}`}
 			>
 				{status}
 			</span>
@@ -104,20 +95,6 @@ export default function ExpensesHistory() {
 
 	// Compute totals for cards
 	const [totals, setTotals] = useState({ Draft: 0, Pending: 0, Approved: 0 });
-
-	useEffect(() => {
-		const draftTotal = dummyExpenses
-			.filter((e) => e.status === 'Draft')
-			.reduce((acc, curr) => acc + curr.amount, 0);
-		const pendingTotal = dummyExpenses
-			.filter((e) => e.status === 'Pending')
-			.reduce((acc, curr) => acc + curr.amount, 0);
-		const approvedTotal = dummyExpenses
-			.filter((e) => e.status === 'Approved')
-			.reduce((acc, curr) => acc + curr.amount, 0);
-
-		setTotals({ Draft: draftTotal, Pending: pendingTotal, Approved: approvedTotal });
-	}, []);
 
 	return (
 		<PageLayout>
@@ -214,7 +191,7 @@ export default function ExpensesHistory() {
 
 				<div className="pl-0">
 					<DataTable
-						value={dummyExpenses}
+						value={expenses}
 						dataKey="_id"
 						filters={filters}
 						globalFilter={globalFilterValue}
