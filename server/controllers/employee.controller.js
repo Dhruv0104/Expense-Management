@@ -15,6 +15,9 @@ async function addExpense(req, res) {
 	if (!title || !date || !amount || !currency || !description) {
 		return res.status(400).json({ message: 'Missing required fields' });
 	}
+
+	const hasPending = await expenseModel.exists({ userId, status: 'PENDING', isActive: true });
+
 	const expense = new expenseModel({
 		userId,
 		title,
@@ -26,6 +29,7 @@ async function addExpense(req, res) {
 		remarks,
 		description,
 		receipt: receipt.slice(6),
+		status: hasPending ? 'DRAFT' : 'PENDING',
 	});
 
 	const rules = await approvalRuleModel.findOne({
@@ -70,8 +74,9 @@ async function addExpenseByOCR(req, res) {
 		const receiptPath = req.file ? req.file.path : null;
 		if (!receiptPath) return res.status(400).json({ message: 'Receipt file is required' });
 
-		let ocrData = {};
+		const hasPending = await expenseModel.exists({ userId, status: 'PENDING', isActive: true });
 
+		let ocrData = {};
 		try {
 			const result = await Tesseract.recognize(receiptPath, 'eng');
 			const rawText = result.data.text || '';
@@ -97,8 +102,6 @@ async function addExpenseByOCR(req, res) {
 				moneyRegex.lastIndex = 0;
 			});
 
-			console.log('Filtered amounts found:', allAmounts);
-
 			let finalAmount = 0;
 			if (allAmounts.length) {
 				finalAmount = allAmounts.reduce(
@@ -106,7 +109,6 @@ async function addExpenseByOCR(req, res) {
 					0
 				);
 			}
-
 			const datePatterns = [
 				/(\d{2}[\/\-]\d{2}[\/\-]\d{4})/,
 				/(\d{4}[\/\-]\d{2}[\/\-]\d{2})/,
@@ -114,6 +116,7 @@ async function addExpenseByOCR(req, res) {
 				/([A-Za-z]+ \d{1,2},\s*\d{4})/,
 				/(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2})/,
 			];
+
 			let parsedDate = null;
 			for (const pattern of datePatterns) {
 				const found = rawText.match(pattern);
@@ -140,6 +143,7 @@ async function addExpenseByOCR(req, res) {
 				remarks: 'Auto-generated from OCR',
 				description,
 				receipt: receiptPath.slice(6),
+				status: hasPending ? 'DRAFT' : 'PENDING',
 			};
 		} catch (error) {
 			console.error('OCR Processing Failed:', error);
