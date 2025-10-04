@@ -10,6 +10,7 @@ import ExpensesHistory from './pages/employee/ExpensesHistory';
 import UserList from './pages/admin/UserList';
 import AddUsers from './pages/admin/AddUsers';
 import ApprovalRules from './pages/admin/ApprovalRules';
+import ManagerDashboard from './pages/manager/ManagerDashboard';
 
 const routes = createBrowserRouter([
 	{
@@ -47,6 +48,10 @@ const routes = createBrowserRouter([
 	{
 		path: '/manager',
 		children: [
+			{
+				path: 'dashboard',
+				element: <ManagerDashboard />,
+			},
 			{
 				path: 'expense-log',
 				element: <ExpenseLog />,
