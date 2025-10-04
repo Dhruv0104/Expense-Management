@@ -57,4 +57,21 @@ async function fetchManagers(req, res) {
 	}
 }
 
-module.exports = { addUser, fetchManagers };
+async function fetchEmployees(req, res) {
+	try {
+		const employees = await userModel.find(
+			{
+				role: 'Employee',
+				isActive: true,
+				companyId: res.locals.user.companyId,
+			},
+			'_id name'
+		);
+		res.json({ success: true, data: employees });
+	} catch (err) {
+		console.error(err);
+		res.status(500).json({ success: false, message: 'Failed to fetch managers' });
+	}
+}
+
+module.exports = { addUser, fetchManagers, fetchEmployees };

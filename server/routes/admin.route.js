@@ -8,5 +8,6 @@ router.use(authMiddleware('Admin'));
 
 router.post('/add-user', asyncRouteHandler(adminController.addUser));
 router.get('/fetch-managers', asyncRouteHandler(adminController.fetchManagers));
+router.get('/fetch-employees', asyncRouteHandler(adminController.fetchEmployees));
 
 module.exports = router;
