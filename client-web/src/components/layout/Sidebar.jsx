@@ -3,16 +3,10 @@ import { Button } from 'primereact/button';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import {
-	CalendarCheck2,
 	LayoutDashboard,
-	Table2,
-	Group,
-	MonitorDot,
-	Tag,
-	MessageSquareHeart,
-	SquarePen,
-	ReceiptText,
-	Verified,
+	Users,
+	UserRoundPlus,
+	SlidersHorizontal,
 } from 'lucide-react';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { FaChalkboardTeacher, FaFileAlt } from 'react-icons/fa';
@@ -26,23 +20,28 @@ export default function Sidebar({ isVisible, onClose }) {
 	const instituteId = data ? JSON.parse(data)?.instituteId : null;
 
 	const roleBasedButtons = {
-		// government: [
-		// 	{
-		// 		label: 'Dashboard',
-		// 		icon: <LayoutDashboard size={23} />,
-		// 		route: '/government/dashboard',
-		// 	},
-		// 	{
-		// 		label: 'Create Contract',
-		// 		icon: <SquarePen size={23} />,
-		// 		route: '/government/create-smart-contract',
-		// 	},
-		// 	{
-		// 		label: 'Active Contracts',
-		// 		icon: <ReceiptText size={23} />,
-		// 		route: '/government/active-contracts',
-		// 	},
-		// ],
+		admin: [
+			{
+				label: 'Dashboard',
+				icon: <LayoutDashboard size={23} />,
+				route: '/admin/dashboard',
+			},
+			{
+				label: 'Users',
+				icon: <Users size={23} />,
+				route: '/admin/user-list',
+			},
+			{
+				label: 'Add Users',
+				icon: <UserRoundPlus size={23} />,
+				route: '/admin/add-user',
+			},
+			{
+				label: 'Approval Rules',
+				icon: <SlidersHorizontal size={23} />,
+				route: '/admin/approval-rules',
+			},
+		],
 		// producer: [
 		// 	{
 		// 		label: 'Dashboard',
@@ -86,7 +85,7 @@ export default function Sidebar({ isVisible, onClose }) {
 			rejectLabel: 'No',
 			draggable: false,
 			accept: () => handleLogout(),
-			reject: () => {},
+			reject: () => { },
 		});
 	};
 	const buttons = roleBasedButtons[role] || [];
@@ -109,10 +108,9 @@ export default function Sidebar({ isVisible, onClose }) {
 							key={label}
 							to={route}
 							className={({ isActive }) =>
-								`w-full text-xl font-semibold my-auto flex items-center gap-2 px-3 py-2 rounded transition-all duration-300 ${
-									isActive
-										? 'bg-card text-primary shadow-md'
-										: 'text-white hover:bg-card hover:text-primary hover:shadow-md'
+								`w-full text-xl font-semibold my-auto flex items-center gap-2 px-3 py-2 rounded transition-all duration-300 ${isActive
+									? 'bg-card text-primary shadow-md'
+									: 'text-white hover:bg-card hover:text-primary hover:shadow-md'
 								}`
 							}
 							onClick={onClose}

@@ -7,6 +7,9 @@ import Login from './pages/auth/Login';
 import SubmitExpense from './pages/employee/SubmitExpense';
 import ExpenseLog from './pages/manager/ExpenseLog';
 import ExpensesHistory from './pages/employee/ExpensesHistory';
+import UserList from './pages/admin/UserList';
+import AddUsers from './pages/admin/AddUsers';
+import ApprovalRules from './pages/admin/ApprovalRules';
 
 const routes = createBrowserRouter([
 	{
@@ -24,13 +27,16 @@ const routes = createBrowserRouter([
 	// 	loader: loginLoader,
 	// 	element: <ForgotPassword />,
 	// },
+
 	{
-		path: '/employee',
-		errorElement: <ErrorElement />,
+		path: '/admin',
+		// loader: verifyLoader('admin'),
+		// errorElement: <ErrorElement />,
 		children: [
-			// { path: 'dashboard', element: <ProducerDashboard /> },
-			{ path: 'submit-expense', element: <SubmitExpense /> },
-			{ path: 'expenses-history', element: <ExpensesHistory /> },
+			// { path: 'dashboard', element: <AdminDashboard /> },
+			{ path: 'user-list', element: <UserList /> },
+			{ path: 'add-user', element: <AddUsers /> },
+			{ path: 'approval-rules', element: <ApprovalRules /> },
 		],
 	},
 	{
@@ -42,7 +48,15 @@ const routes = createBrowserRouter([
 			},
 		],
 	},
-	// Catch all
+	{
+		path: '/employee',
+		errorElement: <ErrorElement />,
+		children: [
+			// { path: 'dashboard', element: <ProducerDashboard /> },
+			{ path: 'submit-expense', element: <SubmitExpense /> },
+			{ path: 'expenses-history', element: <ExpensesHistory /> },
+		],
+	},
 	{
 		path: '*',
 		element: <ErrorElement />,
