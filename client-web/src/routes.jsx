@@ -4,6 +4,7 @@ import ErrorElement from './components/ErrorElement';
 // import Home from './pages/Home';
 import Login from './pages/auth/Login';
 // import Registration from './pages/Producers/Registration';
+import SubmitExpense from './pages/employee/SubmitExpense';
 
 const routes = createBrowserRouter([
 	{
@@ -21,17 +22,14 @@ const routes = createBrowserRouter([
 	// 	loader: loginLoader,
 	// 	element: <ForgotPassword />,
 	// },
-	// {
-	// 	path: '/producer',
-	// 	errorElement: <ErrorElement />,
-	// 	children: [
-	// 		{ path: 'registration', element: <Registration /> },
-	// 		{ path: 'dashboard', element: <ProducerDashboard /> },
-	// 		{ path: 'subsidies', element: <MySubsidies /> },
-	// 		{ path: 'milestone-form/:subsidyId', element: <MilestoneForm /> },
-	// 		{ path: 'fetch-milestones/:id', element: <Milestones /> },
-	// 	],
-	// },
+	{
+		path: '/employee',
+		errorElement: <ErrorElement />,
+		children: [
+			// { path: 'dashboard', element: <ProducerDashboard /> },
+			{ path: 'submit-expense', element: <SubmitExpense /> },
+		],
+	},
 	// Catch all
 	{
 		path: '*',
