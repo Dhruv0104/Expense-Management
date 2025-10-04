@@ -218,11 +218,23 @@ export default function ExpenseLog() {
 						/>
 					</>
 				) : (
-					<div className="flex items-center gap-2">
-						<div className={`px-3 py-1 text-sm font-medium rounded-full ${badgeColor}`}>
-							{rowData.status || 'Unknown'}
+					<>
+						<Button
+							tooltip="View"
+							icon="pi pi-eye"
+							tooltipOptions={{ position: 'top' }}
+							onClick={() => openDetails(rowData)}
+							className="p-button-sm p-button shadow-md transition-all duration-200 hover:shadow-lg hover:scale-105"
+							style={{ background: '#blue', border: 'none', color: 'white' }}
+						/>
+						<div className="flex items-center gap-2">
+							<div
+								className={`px-3 py-1 text-sm font-medium rounded-full ${badgeColor}`}
+							>
+								{rowData.status || 'Unknown'}
+							</div>
 						</div>
-					</div>
+					</>
 				)}
 			</div>
 		);
@@ -249,9 +261,16 @@ export default function ExpenseLog() {
 	};
 
 	const receiptBodyTemplate = (rowData) => {
-		return rowData.receipt ? (
+		if (!rowData.receipt)
+			return <span className="text-slate-400 italic text-xs">Not uploaded</span>;
+
+		// Normalize path
+		const normalizedPath = rowData.receipt.replace(/\\/g, '/'); // converts \ to /
+		const receiptURL = `${'http://localhost:5000'}${normalizedPath}`;
+
+		return (
 			<a
-				href={rowData.receipt.replace('/manager', '')}
+				href={receiptURL}
 				target="_blank"
 				rel="noopener noreferrer"
 				className="text-indigo-600 hover:underline flex items-center gap-1"
@@ -259,8 +278,6 @@ export default function ExpenseLog() {
 				<ReceiptText className="w-5 h-5" />
 				Open
 			</a>
-		) : (
-			<span className="text-slate-400 italic text-xs">Not uploaded</span>
 		);
 	};
 
