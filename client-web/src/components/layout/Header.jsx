@@ -6,7 +6,7 @@ import logo from '../../assets/logo.png';
 
 export default function Header({ onToggleSidebar }) {
 	const navigate = useNavigate();
-	const username = localStorage.getItem('username');
+	const email = localStorage.getItem('email');
 	const userData = JSON.parse(localStorage.getItem('data') || '{}');
 	const role = localStorage.getItem('role');
 
@@ -40,7 +40,7 @@ export default function Header({ onToggleSidebar }) {
 				onClick={handleProfileClick}
 			>
 				<span className="hidden sm:inline text-xl font-semibold text-primary truncate max-w-[100px] sm:max-w-xs">
-					{username || 'Guest'}
+					{email || 'Guest'}
 				</span>
 				<Avatar
 					shape="circle"

@@ -10,23 +10,16 @@ import { Button } from 'primereact/button';
 import logo from '../../assets/logo.png';
 
 const Login = () => {
-	const [username, setUsername] = useState('');
+	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
-	const [role, setRole] = useState(null);
 	const [loading, setLoading] = useState(false);
 	const toast = useRef(null);
 	const navigate = useNavigate();
 	const { login } = useAuth();
 
-	const roles = [
-		{ label: 'Government', value: 'government' },
-		{ label: 'Auditor', value: 'auditor' },
-		{ label: 'Producer', value: 'producer' },
-	];
-
 	const handleLogin = async () => {
 		setLoading(true);
-		if (!username || !password || !role) {
+		if (!email || !password) {
 			toast.current.show({
 				severity: 'error',
 				summary: 'Error',
@@ -38,14 +31,14 @@ const Login = () => {
 		try {
 			const response = await fetchPost({
 				pathName: 'auth/login',
-				body: JSON.stringify({ username, password, role }),
+				body: JSON.stringify({ email, password }),
 			});
 
 			if (response?.success) {
 				login(response.data);
-				if (response.data.role === 'government') navigate('/government/dashboard');
-				else if (response.data.role === 'auditor') navigate('/auditor/dashboard');
-				else if (response.data.role === 'producer') navigate('/producer/dashboard');
+				if (response.data.role === 'Admin') navigate('/admin/dashboard');
+				else if (response.data.role === 'Manager') navigate('/manager/dashboard');
+				else if (response.data.role === 'Employee') navigate('/employee/dashboard');
 				else navigate('/');
 			} else {
 				toast.current.show({
@@ -74,7 +67,7 @@ const Login = () => {
 			<Toast ref={toast} />
 			<div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-200 via-white to-gray-100 px-4">
 				<h1 className="text-4xl font-extrabold text-primary mb-16 tracking-wide drop-shadow-sm overflow-hidden whitespace-nowrap border-r-4 border-primary animate-typing">
-					Subsidy<span className="text-gray-800">Track</span>
+					Expense <span className="text-gray-800">Management</span>
 				</h1>
 
 				<div className="relative w-full max-w-md p-8 rounded-xl shadow-lg backdrop-blur-md bg-white/30 border border-white/40">
@@ -89,27 +82,14 @@ const Login = () => {
 
 					<h2 className="text-3xl font-bold text-primary text-center my-10">Login</h2>
 					<div className="mb-4">
-						<label htmlFor="role" className="block text-primary font-medium mb-1">
-							Role
-						</label>
-						<Dropdown
-							value={role}
-							onChange={(e) => setRole(e.value)}
-							options={roles}
-							optionLabel="label"
-							placeholder="Select a Role"
-							className="w-full md:w-14rem"
-						/>
-					</div>
-					<div className="mb-4">
-						<label htmlFor="username" className="block text-primary font-medium mb-1">
-							Username
+						<label htmlFor="email" className="block text-primary font-medium mb-1">
+							Email
 						</label>
 						<InputText
-							id="username"
-							value={username}
-							onChange={(e) => setUsername(e.target.value)}
-							placeholder="Enter your username"
+							id="email"
+							value={email}
+							onChange={(e) => setEmail(e.target.value)}
+							placeholder="Enter your email"
 							className="w-full p-3 rounded border border-gray-300 transition-all focus:ring-2 focus:ring-primary hover:border-primary"
 						/>
 					</div>
@@ -136,9 +116,9 @@ const Login = () => {
 					/>
 					<div className="mt-4 text-center">
 						<span className="text-sm text-gray-600">
-							New User?{" "}
+							New User?{' '}
 							<button
-								onClick={() => navigate("/producer/registration")}
+								onClick={() => navigate('/register')}
 								type="button"
 								className="text-primary font-medium hover:underline"
 							>

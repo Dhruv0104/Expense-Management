@@ -8,7 +8,7 @@ import { Button } from 'primereact/button';
 import { Card } from 'primereact/card';
 import PageLayout from '../../components/layout/PageLayout';
 
-export default function EmployeeSubmitExpense() {
+export default function SubmitExpense() {
 	const [formData, setFormData] = useState({
 		category: null,
 		amount: '',
@@ -48,17 +48,9 @@ export default function EmployeeSubmitExpense() {
 		<PageLayout>
 			<div className="container p-5">
 				<div className="flex items-center gap-1 mb-5">
-					<Button
-						icon={<i className="pi pi-angle-left text-3xl text-primary" />}
-						rounded
-						text
-						aria-label="Back"
-						className="focus:outline-none focus:ring-0"
-						onClick={() => window.history.back()}
-					/>
 					<h1 className="text-3xl font-bold text-primary">Submit Expense</h1>
 				</div>
-				<div className="px-10">
+				<div className="px-10 py-5 bg-white border border-gray-300 rounded">
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 						<div>
 							<label className="block mb-1 text-base font-medium text-text">
@@ -177,7 +169,6 @@ export default function EmployeeSubmitExpense() {
 							/>
 						</div>
 					</div>
-
 					<div className="flex justify-end gap-5">
 						<Button
 							label="Save Draft"
