@@ -10,20 +10,25 @@ import PageLayout from '../../components/layout/PageLayout';
 
 export default function SubmitExpense() {
 	const [formData, setFormData] = useState({
+		title: '',
+		date: null,
 		category: null,
+		paidBy: null,
 		amount: '',
 		currency: null,
+		remarks: '',
 		description: '',
-		date: null,
+		receipt: null,
 	});
 	const categories = [
 		{ label: 'Travel', value: 'travel' },
 		{ label: 'Food', value: 'food' },
 	];
 	const paidBy = [
-		{ label: 'Romil', value: '1234' },
-		{ label: 'Dhruv', value: '4321' },
+		{ label: 'Romil', value: '64f1b7c123456789abcdef01' }, // real ObjectId from DB
+		{ label: 'Dhruv', value: '64f1b7c123456789abcdef02' },
 	];
+
 	const currency = [
 		{ label: 'Rupee(₹)', value: 'rupee' },
 		{ label: 'Doller($)', value: 'doller' },
@@ -36,6 +41,43 @@ export default function SubmitExpense() {
 
 	const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 	const handleDropdown = (e, field) => setFormData({ ...formData, [field]: e.value });
+	const handleSubmit = async () => {
+		try {
+			const payload = new FormData();
+
+			Object.keys(formData).forEach((key) => {
+				const value = formData[key];
+
+				if (value === null || value === undefined) return;
+
+				// Convert Date to ISO string
+				if (value instanceof Date) {
+					payload.append(key, value.toISOString());
+				}
+				// For file or strings
+				else {
+					payload.append(key, value);
+				}
+			});
+
+			console.log(payload);
+			const token = localStorage.getItem('token');
+			const response = await fetch(`${import.meta.env.VITE_URL}employee/submit-expense`, {
+				method: 'POST',
+				body: payload,
+				headers: {
+					Authorization: `Bearer ${token}`,
+				},
+			});
+
+			const data = await response.json();
+			console.log('Expense submitted:', data);
+			alert('Expense submitted successfully!');
+		} catch (error) {
+			console.error('Error submitting expense:', error);
+			alert('Failed to submit expense.');
+		}
+	};
 
 	const baseInputClasses =
 		'w-full p-2 rounded border border-gray-300 transition-all focus:ring-2 focus:ring-primary hover:border-primary';
@@ -58,6 +100,7 @@ export default function SubmitExpense() {
 							</label>
 							<InputText
 								value={formData.title}
+								name="title"
 								onChange={handleChange}
 								placeholder="Enter Title"
 								className={`${baseInputClasses}`}
@@ -93,7 +136,7 @@ export default function SubmitExpense() {
 							<Dropdown
 								value={formData.paidBy}
 								options={paidBy}
-								onChange={(e) => handleDropdown(e, 'paidby')}
+								onChange={(e) => handleDropdown(e, 'paidBy')}
 								filter
 								placeholder="Select Paid by"
 								className={`${dropdownClases}`}
@@ -105,14 +148,18 @@ export default function SubmitExpense() {
 							</label>
 							<div className="p-inputgroup flex-1">
 								<InputText
-									placeholder="Amount"
+									name="amount"
+									value={formData.amount}
+									onChange={handleChange}
+									placeholder="Enter Amount"
 									className={`${baseInputClasses} rounded-r-none`}
 								/>
+
 								<span className="">
 									<Dropdown
 										value={formData.currency}
 										options={currency}
-										onChange={(e) => handleDropdown(e, 'paidby')}
+										onChange={(e) => handleDropdown(e, 'currency')}
 										filter
 										placeholder="Select Currency"
 										className={`${dropdownClases} rounded-l-none`}
@@ -127,9 +174,9 @@ export default function SubmitExpense() {
 							<InputText
 								id="remarks"
 								name="remarks"
-								value={formData.amount}
+								value={formData.remarks}
 								onChange={handleChange}
-								placeholder="Enter Amount"
+								placeholder="Enter Remarks"
 								className={`${baseInputClasses}`}
 							/>
 						</div>
@@ -163,8 +210,11 @@ export default function SubmitExpense() {
 							<input
 								id="receiptUpload"
 								type="file"
+								name="receipt"
 								accept="image/*"
-								onChange={(e) => console.log('Selected file:', e.target.files[0])}
+								onChange={(e) =>
+									setFormData({ ...formData, receipt: e.target.files[0] })
+								}
 								className="absolute inset-0 opacity-0 cursor-pointer"
 							/>
 						</div>
@@ -175,7 +225,11 @@ export default function SubmitExpense() {
 							outlined
 							className={`w-auto border-primary text-primary text-lg font-medium hover:bg-primary/10`}
 						/>
-						<Button label="Submit" className={`w-40 ${btnClasses}`} />
+						<Button
+							label="Submit"
+							className={`w-40 ${btnClasses}`}
+							onClick={handleSubmit}
+						/>
 					</div>
 				</div>
 			</div>
