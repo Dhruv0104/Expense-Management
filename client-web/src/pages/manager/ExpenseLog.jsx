@@ -534,20 +534,20 @@ export default function ExpenseLog() {
 									>
 										{dialogType === 'approve' ? 'approve' : 'reject'}
 									</span>{' '}
-									request{' '}
+									{/* request{' '}
 									<span className="font-mono text-indigo-600">
 										{selectedRequest._id}
 									</span>{' '}
 									submitted by{' '}
 									<span className="font-semibold">
 										{selectedRequest.employee}
-									</span>
+									</span> */}
 									?
 								</p>
-								<div className="mt-2 text-xs text-slate-500">
+								{/* <div className="mt-2 text-xs text-slate-500">
 									Type: {selectedRequest.type} • Submitted:{' '}
 									{selectedRequest.submittedDate}
-								</div>
+								</div> */}
 							</div>
 
 							{/* Message input */}
