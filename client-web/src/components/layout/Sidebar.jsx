@@ -17,10 +17,10 @@ export default function Sidebar({ isVisible, onClose }) {
 	// const role = 'faculty';
 
 	const data = localStorage.getItem('data');
-	const instituteId = data ? JSON.parse(data)?.instituteId : null;
+	// const instituteId = data ? JSON.parse(data)?.instituteId : null;
 
 	const roleBasedButtons = {
-		admin: [
+		Admin: [
 			{
 				label: 'Dashboard',
 				icon: <LayoutDashboard size={23} />,
@@ -29,7 +29,7 @@ export default function Sidebar({ isVisible, onClose }) {
 			{
 				label: 'Users',
 				icon: <Users size={23} />,
-				route: '/admin/user-list',
+				route: '/admin/users',
 			},
 			{
 				label: 'Add Users',

@@ -6,6 +6,7 @@ import PageLayout from '../../components/layout/PageLayout';
 import { Toast } from 'primereact/toast';
 import { useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { fetchPost } from '../../utils/fetch.utils';
 
 // Dummy manager list
 const managerList = [
@@ -35,6 +36,7 @@ function AddUser() {
         manager: '',
         email: '',
     });
+    const [loading, setLoading] = useState(false);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -45,15 +47,42 @@ function AddUser() {
         setFormData((prev) => ({ ...prev, [field]: e.value }));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         // Here you can call your API to save user
         console.log('Form submitted:', formData);
-        toast.current.show({
-            severity: 'success',
-            summary: 'User Added',
-            detail: `${formData.name} has been added successfully`,
-        });
+        setLoading(true);
+        try {
+            const response = await fetchPost({
+                pathName: 'admin/add-user',
+                body: JSON.stringify(formData),
+            });
+
+            if (response?.success) {
+                toast.current.show({
+                    severity: 'success',
+                    summary: 'Success',
+                    detail: 'User added successfully',
+                });
+                setTimeout(() => {
+                    navigate('/admin/users'); // Redirect to dashboard/home after signup
+                }, 2000);
+            } else {
+                toast.current.show({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: `${response?.message || 'Registration failed'}`,
+                });
+            }
+        } catch (error) {
+            toast.current.show({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'Something went wrong!',
+            });
+        } finally {
+            setLoading(false);
+        }
 
         // Reset form
         setFormData({ name: '', role: '', manager: '', email: '' });

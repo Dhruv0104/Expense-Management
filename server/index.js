@@ -13,6 +13,7 @@ const { errorHandler, asyncRouteHandler } = require('./utils/route.utils');
 
 // include routes here
 const authRoutes = require('./routes/auth.route');
+const adminRoutes = require('./routes/admin.route');
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use(
 
 //Routes
 app.use('/auth', authRoutes);
+app.use('/admin', adminRoutes);
 
 app.use(errorHandler);
 

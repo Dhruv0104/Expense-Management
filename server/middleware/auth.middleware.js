@@ -1,6 +1,4 @@
 const jwt = require('jsonwebtoken');
-const facultyModel = require('../models/faculty.model');
-const studentModel = require('../models/student.model');
 const userModel = require('../models/user.model');
 
 function authMiddleware(role) {
@@ -20,7 +18,7 @@ function authMiddleware(role) {
 				return res.status(401).json({ error: 'Invalid or expired token' });
 			}
 			const userEntry = await userModel.findById(user._id);
-			if (!userEntry || userEntry.currentToken !== token) {
+			if (!userEntry) {
 				return res.status(401).json({ message: 'Invalid session' });
 			}
 
@@ -31,15 +29,7 @@ function authMiddleware(role) {
 			// if (role && user.role !== role) {
 			// 	return res.status(403).json({ error: 'Forbidden: insufficient privileges' });
 			// }
-			let data;
-			if (role == 'STUDENT') {
-				data = await studentModel.findOne({ userId: user._id });
-			} else {
-				data = await facultyModel.findOne({ userId: user._id });
-			}
-			res.locals.data = data;
-
-			res.locals.user = user;
+			res.locals.user = userEntry;
 
 			next();
 		} catch (err) {
