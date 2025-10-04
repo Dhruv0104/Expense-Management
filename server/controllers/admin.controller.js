@@ -3,6 +3,7 @@ const md5 = require('md5');
 const userModel = require('../models/user.model');
 // const companyModel = require('../models/company.model');
 const { sendResetPasswordEmail } = require('../utils/mailer');
+const approvalRuleModel = require('../models/approvalRule.model');
 
 async function addUser(req, res) {
 	const { name, role, manager, email } = req.body;
@@ -42,14 +43,11 @@ async function addUser(req, res) {
 // Fetch Managers
 async function fetchManagers(req, res) {
 	try {
-		const managers = await userModel.find(
-			{
-				role: 'Manager',
-				isActive: true,
-				companyId: res.locals.user.companyId,
-			},
-			'_id name'
-		);
+		const managers = await userModel.find({
+			role: 'Manager',
+			isActive: true,
+			companyId: res.locals.user.companyId,
+		});
 		res.json({ success: true, data: managers });
 	} catch (err) {
 		console.error(err);
@@ -59,14 +57,11 @@ async function fetchManagers(req, res) {
 
 async function fetchEmployees(req, res) {
 	try {
-		const employees = await userModel.find(
-			{
-				role: 'Employee',
-				isActive: true,
-				companyId: res.locals.user.companyId,
-			},
-			'_id name'
-		);
+		const employees = await userModel.find({
+			role: 'Employee',
+			isActive: true,
+			companyId: res.locals.user.companyId,
+		});
 		res.json({ success: true, data: employees });
 	} catch (err) {
 		console.error(err);
@@ -74,4 +69,52 @@ async function fetchEmployees(req, res) {
 	}
 }
 
-module.exports = { addUser, fetchManagers, fetchEmployees };
+async function addRules(req, res) {
+	try {
+		const {
+			user,
+			manager,
+			isManagerApprover,
+			ruleDescription,
+			approvers,
+			approvalType,
+			minimumApprovalPercentage,
+			approvesInSequence,
+		} = req.body;
+
+		// Map approvers array into schema-compatible format
+		const approversData = approvers.map((a) => ({
+			userId: a.value, // value is the userId from dropdown
+			isRequired: a.required || false,
+			isSpecific: a.specific || false,
+		}));
+
+		const newRule = new approvalRuleModel({
+			userId: user,
+			managerId: manager,
+			isManagerApproved: isManagerApprover,
+			description: ruleDescription,
+			approvers: approversData,
+			type: approvalType.toUpperCase(), // 'percentage' → 'PERCENTAGE'
+			isApproversSequential: approvesInSequence,
+			minimumApprovalsPercentage: minimumApprovalPercentage,
+		});
+
+		await newRule.save();
+
+		res.status(201).json({
+			success: true,
+			message: 'Approval Rule created successfully',
+			data: newRule,
+		});
+	} catch (error) {
+		console.error('Error creating approval rule:', error);
+		res.status(500).json({
+			success: false,
+			message: 'Error creating approval rule',
+			error: error.message,
+		});
+	}
+}
+
+module.exports = { addUser, fetchManagers, fetchEmployees, addRules };
