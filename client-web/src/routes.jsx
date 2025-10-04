@@ -5,6 +5,7 @@ import ErrorElement from './components/ErrorElement';
 import Login from './pages/auth/Login';
 // import Registration from './pages/Producers/Registration';
 import SubmitExpense from './pages/employee/SubmitExpense';
+import ExpenseLog from './pages/manager/ExpenseLog';
 
 const routes = createBrowserRouter([
 	{
@@ -28,6 +29,15 @@ const routes = createBrowserRouter([
 		children: [
 			// { path: 'dashboard', element: <ProducerDashboard /> },
 			{ path: 'submit-expense', element: <SubmitExpense /> },
+		],
+	},
+	{
+		path: '/manager',
+		children: [
+			{
+				path: 'expense-log',
+				element: <ExpenseLog />,
+			},
 		],
 	},
 	// Catch all
