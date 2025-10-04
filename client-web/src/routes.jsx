@@ -11,6 +11,7 @@ import UserList from './pages/admin/UserList';
 import AddUsers from './pages/admin/AddUsers';
 import ApprovalRules from './pages/admin/ApprovalRules';
 import ManagerDashboard from './pages/manager/ManagerDashboard';
+import EmployeeDashbaord from './pages/employee/Dashboard';
 
 const routes = createBrowserRouter([
 	{
@@ -62,7 +63,7 @@ const routes = createBrowserRouter([
 		path: '/employee',
 		errorElement: <ErrorElement />,
 		children: [
-			// { path: 'dashboard', element: <ProducerDashboard /> },
+			{ path: 'dashboard', element: <EmployeeDashbaord /> },
 			{ path: 'submit-expense', element: <SubmitExpense /> },
 			{ path: 'expenses-history', element: <ExpensesHistory /> },
 		],
