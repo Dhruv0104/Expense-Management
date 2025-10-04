@@ -249,7 +249,7 @@ export default function ExpenseLog() {
 	const receiptBodyTemplate = (rowData) => {
 		return rowData.receipt ? (
 			<a
-				href={rowData.receipt}
+				href={rowData.receipt.replace('/manager', '')}
 				target="_blank"
 				rel="noopener noreferrer"
 				className="text-indigo-600 hover:underline flex items-center gap-1"
