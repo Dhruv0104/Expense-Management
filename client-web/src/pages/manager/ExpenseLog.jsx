@@ -1,65 +1,111 @@
-// ...existing code...
 import React, { useEffect, useRef, useState } from 'react';
 import { FilterMatchMode } from 'primereact/api';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { InputText } from 'primereact/inputtext';
 import { InputNumber } from 'primereact/inputnumber';
+import { Dropdown } from 'primereact/dropdown';
 import { Button } from 'primereact/button';
-import { Tag } from 'primereact/tag';
 import { Dialog } from 'primereact/dialog';
 import { Toast } from 'primereact/toast';
 import { InputTextarea } from 'primereact/inputtextarea';
-import { ArrowUpDown, ArrowDownNarrowWide, ArrowUpNarrowWide, Eye } from 'lucide-react';
+import {
+	ArrowUpDown,
+	ArrowDownNarrowWide,
+	ArrowUpNarrowWide,
+	Eye,
+	ReceiptText,
+} from 'lucide-react';
 import PageLayout from '../../components/layout/PageLayout';
 
+// Mock expenses matching the server expense model
 const initialRequests = [
 	{
-		id: 'REQ-001',
-		employee: 'Sarah Johnson',
-		type: 'Travel',
-		submittedDate: '2025-09-20',
-		status: 'Pending',
-		message: '',
+		_id: 'EXP-001',
+		title: 'Flight to Conference',
+		date: '2025-09-20T10:00:00.000Z',
+		user: { _id: 'U1', name: 'Sarah Johnson', email: 'sarah@example.com' },
+		category: 'Travel',
+		paidBy: { _id: 'U1', name: 'Sarah Johnson' },
+		status: 'PENDING',
+		approverDecisions: [{ userId: 'M1', status: 'PENDING', comment: '', decidedAt: null }],
+		amount: 12500,
+		currency: 'INR',
+		description: 'Flight ticket and airport taxi',
+		receipt: 'https://via.placeholder.com/800x600.png?text=Receipt+EXP-001',
 	},
 	{
-		id: 'REQ-002',
-		employee: 'Mark Lee',
-		type: 'Food',
-		submittedDate: '2025-09-18',
-		status: 'Pending',
-		message: '',
+		_id: 'EXP-002',
+		title: 'Team Lunch',
+		date: '2025-09-18T13:30:00.000Z',
+		user: { _id: 'U2', name: 'Mark Lee', email: 'mark@example.com' },
+		category: 'Food',
+		paidBy: { _id: 'U2', name: 'Mark Lee' },
+		status: 'PENDING',
+		approverDecisions: [{ userId: 'M1', status: 'PENDING', comment: '', decidedAt: null }],
+		amount: 2300,
+		currency: 'INR',
+		description: 'Team lunch after project milestone',
+		receipt: null,
 	},
 	{
-		id: 'REQ-003',
-		employee: 'Anita Gomez',
-		type: 'Supplies',
-		submittedDate: '2025-09-15',
-		status: 'Approved',
-		message: 'Approved as per budget policy',
+		_id: 'EXP-003',
+		title: 'Stationery Purchase',
+		date: '2025-09-15T09:00:00.000Z',
+		user: { _id: 'U3', name: 'Anita Gomez', email: 'anita@example.com' },
+		category: 'Supplies',
+		paidBy: { _id: 'U3', name: 'Anita Gomez' },
+		status: 'APPROVED',
+		approverDecisions: [
+			{
+				userId: 'M1',
+				status: 'APPROVED',
+				comment: 'Approved as per budget policy',
+				decidedAt: '2025-09-16T12:00:00.000Z',
+			},
+		],
+		amount: 780,
+		currency: 'INR',
+		description: 'Office stationery',
+		receipt: 'https://via.placeholder.com/800x600.png?text=Receipt+EXP-003',
 	},
 	{
-		id: 'REQ-004',
-		employee: 'John Doe',
-		type: 'Training',
-		submittedDate: '2025-09-12',
-		status: 'Rejected',
-		message: 'Not aligned with current training plan',
+		_id: 'EXP-004',
+		title: 'Online Training',
+		date: '2025-09-12T15:00:00.000Z',
+		user: { _id: 'U4', name: 'John Doe', email: 'john@example.com' },
+		category: 'Training',
+		paidBy: { _id: 'U4', name: 'John Doe' },
+		status: 'REJECTED',
+		approverDecisions: [
+			{
+				userId: 'M1',
+				status: 'REJECTED',
+				comment: 'Not aligned with current training plan',
+				decidedAt: '2025-09-13T10:00:00.000Z',
+			},
+		],
+		amount: 4500,
+		currency: 'INR',
+		description: 'Course fee',
+		receipt: null,
 	},
 ];
 
 export default function ExpenseLog() {
 	const [requests, setRequests] = useState(initialRequests);
 	const [filters, setFilters] = useState({
-		id: { value: null, matchMode: FilterMatchMode.CONTAINS },
-		employee: { value: null, matchMode: FilterMatchMode.CONTAINS },
-		type: { value: null, matchMode: FilterMatchMode.CONTAINS },
-		submittedDate: { value: null, matchMode: FilterMatchMode.CONTAINS },
+		title: { value: null, matchMode: FilterMatchMode.CONTAINS },
+		'user.name': { value: null, matchMode: FilterMatchMode.CONTAINS },
+		category: { value: null, matchMode: FilterMatchMode.CONTAINS },
+		date: { value: null, matchMode: FilterMatchMode.CONTAINS },
+		amount: { value: null, matchMode: FilterMatchMode.BETWEEN },
+		status: { value: null, matchMode: FilterMatchMode.EQUALS },
 	});
 	const [globalFilterValue, setGlobalFilterValue] = useState('');
 	const [currentPage, setCurrentPage] = useState(0);
 	const [rowsPerPage, setRowsPerPage] = useState(10);
-	const [loading, setLoading] = useState(false);
+	const [loading, _setLoading] = useState(false);
 	const toast = useRef(null);
 
 	// Approve / Reject dialog state
@@ -69,12 +115,20 @@ export default function ExpenseLog() {
 	const [actionMessage, setActionMessage] = useState('');
 
 	useEffect(() => {
-		// If you later want to fetch real data, do it here.
+		// Future: fetch data from API
 	}, []);
 
 	const onGlobalFilterChange = (e) => {
-		const value = e.target.value;
-		setGlobalFilterValue(value);
+		setGlobalFilterValue(e.target.value);
+	};
+
+	// Details dialog state
+	const [detailsVisible, setDetailsVisible] = useState(false);
+	const [activeExpense, setActiveExpense] = useState(null);
+
+	const openDetails = (row) => {
+		setActiveExpense(row);
+		setDetailsVisible(true);
 	};
 
 	const clearFilters = () => {
@@ -102,19 +156,37 @@ export default function ExpenseLog() {
 	const openConfirm = (rowData, type) => {
 		setSelectedRequest(rowData);
 		setDialogType(type);
-		setActionMessage(''); // reset message
+		setActionMessage('');
 		setDialogVisible(true);
 	};
 
 	const updateStatus = (id, newStatus, message) => {
 		setRequests((prev) =>
-			prev.map((r) => (r.id === id ? { ...r, status: newStatus, message } : r))
+			prev.map((r) =>
+				r._id === id
+					? {
+							...r,
+							status: newStatus,
+							// store message as description note for simplicity
+							message: message,
+							approverDecisions: [
+								...(r.approverDecisions || []),
+								{
+									userId: 'CURRENT_MANAGER',
+									status: newStatus.toUpperCase(),
+									comment: message,
+									decidedAt: new Date().toISOString(),
+								},
+							],
+					  }
+					: r
+			)
 		);
 
 		toast.current?.show({
 			severity: 'success',
 			summary: `${newStatus}`,
-			detail: `Request ${id} marked as ${newStatus}. ${message ? `Note: ${message}` : ''}`,
+			detail: `Expense ${id} marked as ${newStatus}. ${message ? `Note: ${message}` : ''}`,
 			life: 3000,
 		});
 	};
@@ -134,13 +206,13 @@ export default function ExpenseLog() {
 	};
 
 	const actionsBody = (rowData) => {
-		const isPending = rowData.status === 'Pending';
+		const isPending = (rowData.status || '').toString().toUpperCase() === 'PENDING';
 		const badgeColor =
-			rowData.status.toLowerCase() === 'approved'
+			(rowData.status || '').toString().toLowerCase() === 'approved'
 				? 'bg-green-100 text-green-800'
-				: rowData.status.toLowerCase() === 'rejected'
+				: (rowData.status || '').toString().toLowerCase() === 'rejected'
 				? 'bg-red-100 text-red-800'
-				: rowData.status.toLowerCase() === 'pending'
+				: (rowData.status || '').toString().toLowerCase() === 'pending'
 				? 'bg-yellow-100 text-yellow-800'
 				: 'bg-gray-100 text-gray-800';
 		return (
@@ -148,27 +220,30 @@ export default function ExpenseLog() {
 				{isPending ? (
 					<>
 						<Button
-							label="Approve"
-							icon="pi pi-check"
+							tooltip="View"
+							icon="pi pi-eye"
+							tooltipOptions={{ position: 'top' }}
+							onClick={() => openDetails(rowData)}
 							className="p-button-sm p-button shadow-md transition-all duration-200 hover:shadow-lg hover:scale-105"
-							onClick={() => openConfirm(rowData, 'approve')}
-							style={{
-								background: '#16a34a',
-								border: 'none',
-								color: 'white',
-							}}
+							style={{ background: '#blue', border: 'none', color: 'white' }}
 						/>
 
 						<Button
-							label="Reject"
+							tooltip="Approve"
+							tooltipOptions={{ position: 'top' }}
+							icon="pi pi-check"
+							className="p-button-sm p-button shadow-md transition-all duration-200 hover:shadow-lg hover:scale-105"
+							onClick={() => openConfirm(rowData, 'approve')}
+							style={{ background: '#16a34a', border: 'none', color: 'white' }}
+						/>
+
+						<Button
+							tooltip="Reject"
 							icon="pi pi-times"
+							tooltipOptions={{ position: 'top' }}
 							className="p-button-sm p-button shadow-md transition-all duration-200 hover:shadow-lg hover:scale-105"
 							onClick={() => openConfirm(rowData, 'reject')}
-							style={{
-								background: '#dc2626',
-								border: 'none',
-								color: 'white',
-							}}
+							style={{ background: '#dc2626', border: 'none', color: 'white' }}
 						/>
 					</>
 				) : (
@@ -183,7 +258,7 @@ export default function ExpenseLog() {
 	};
 
 	const statusBadgeTemplate = (rowData) => {
-		const status = (rowData?.status || 'Unknown').toLowerCase();
+		const status = (rowData?.status || 'Unknown').toString().toLowerCase();
 		const badgeColor =
 			status === 'approved'
 				? 'bg-green-100 text-green-800'
@@ -202,6 +277,22 @@ export default function ExpenseLog() {
 		);
 	};
 
+	const receiptBodyTemplate = (rowData) => {
+		return rowData.receipt ? (
+			<a
+				href={rowData.receipt}
+				target="_blank"
+				rel="noopener noreferrer"
+				className="text-indigo-600 hover:underline flex items-center gap-1"
+			>
+				<ReceiptText className="w-5 h-5" />
+				Open
+			</a>
+		) : (
+			<span className="text-slate-400 italic text-xs">Not uploaded</span>
+		);
+	};
+
 	const idFilterTemplate = (options) => (
 		<InputText
 			value={options.value}
@@ -214,6 +305,51 @@ export default function ExpenseLog() {
 			value={options.value}
 			onChange={(e) => options.filterCallback(e.target.value)}
 			placeholder="Search employee"
+		/>
+	);
+
+	const amountFilterTemplate = (options) => (
+		<div className="flex gap-2">
+			<InputNumber
+				value={options.value ? options.value[0] : null}
+				onValueChange={(e) =>
+					options.filterCallback(
+						[e.value, options.value ? options.value[1] : null],
+						options.index
+					)
+				}
+				placeholder="Min"
+				useGrouping={false}
+				className="p-column-filter"
+			/>
+			<InputNumber
+				value={options.value ? options.value[1] : null}
+				onValueChange={(e) =>
+					options.filterCallback(
+						[options.value ? options.value[0] : null, e.value],
+						options.index
+					)
+				}
+				placeholder="Max"
+				useGrouping={false}
+				className="p-column-filter"
+			/>
+		</div>
+	);
+
+	const statusOptions = [
+		{ label: 'Pending', value: 'PENDING' },
+		{ label: 'Approved', value: 'APPROVED' },
+		{ label: 'Rejected', value: 'REJECTED' },
+	];
+
+	const statusFilterTemplate = (options) => (
+		<Dropdown
+			value={options.value}
+			options={statusOptions}
+			onChange={(e) => options.filterCallback(e.value, options.index)}
+			placeholder="Select status"
+			className="p-column-filter"
 		/>
 	);
 
@@ -264,13 +400,13 @@ export default function ExpenseLog() {
 			<div className="w-full overflow-hidden px-3">
 				<DataTable
 					value={requests}
-					dataKey="id"
+					dataKey="_id"
 					loading={loading}
 					filters={filters}
 					globalFilter={globalFilterValue}
 					filterDisplay="menu"
 					onFilter={(e) => setFilters(e.filters)}
-					globalFilterFields={['id', 'employee', 'type', 'submittedDate']}
+					globalFilterFields={['title', 'user.name', 'category', 'description']}
 					emptyMessage="No requests found."
 					stripedRows
 					removableSort
@@ -285,8 +421,8 @@ export default function ExpenseLog() {
 					}}
 				>
 					<Column
-						field="id"
-						header="Request ID"
+						field="title"
+						header="Title"
 						sortable
 						filter
 						filterElement={idFilterTemplate}
@@ -294,47 +430,74 @@ export default function ExpenseLog() {
 						headerClassName="bg-primary text-white text-md font-semibold border border-gray-200"
 					/>
 					<Column
-						field="employee"
-						header="Employee Name"
-						sortable
-						filter
-						filterElement={employeeFilterTemplate}
-						bodyClassName="text-sm border border-gray-200 px-3 py-2"
-						headerClassName="bg-primary text-white text-md font-semibold border border-gray-200"
-					/>
-					<Column
-						field="type"
-						header="Type"
-						sortable
-						filter
-						filterPlaceholder="Filter type"
-						bodyClassName="text-sm border border-gray-200 px-3 py-2"
-						headerClassName="bg-primary text-white text-md font-semibold border border-gray-200"
-					/>
-					<Column
-						field="submittedDate"
-						header="Submitted Date"
+						field="date"
+						header="Date"
 						sortable
 						filter
 						filterPlaceholder="Filter date"
+						body={(row) => new Date(row.date).toLocaleDateString()}
+						bodyClassName="text-sm border border-gray-200 px-3 py-2"
+						headerClassName="bg-primary text-white text-md font-semibold border border-gray-200"
+					/>
+					<Column
+						field="user.name"
+						header="Request Owner"
+						sortable
+						filter
+						filterElement={employeeFilterTemplate}
+						body={(row) => row.user?.name}
+						bodyClassName="text-sm border border-gray-200 px-3 py-2"
+						headerClassName="bg-primary text-white text-md font-semibold border border-gray-200"
+					/>
+					<Column
+						field="category"
+						header="Category"
+						sortable
+						filter
+						filterPlaceholder="Filter category"
+						bodyClassName="text-sm border border-gray-200 px-3 py-2"
+						headerClassName="bg-primary text-white text-md font-semibold border border-gray-200"
+					/>
+
+					<Column
+						field="amount"
+						header="Amount"
+						sortable
+						filter
+						filterElement={amountFilterTemplate}
+						body={(row) => `${row.currency} ${row.amount}`}
 						bodyClassName="text-sm border border-gray-200 px-3 py-2"
 						headerClassName="bg-primary text-white text-md font-semibold border border-gray-200"
 					/>
 					<Column
 						header="Status"
 						body={statusBadgeTemplate}
-						bodyClassName="text-sm border border-gray-200 px-3 py-2"
-						headerClassName={`bg-primary text-white text-md font-semibold border border-gray-200 `}
-					/>
-					<Column
-						field="message"
-						header="Note"
-						body={(rowData) => (
-							<span className="text-xs text-slate-600">{rowData.message || '-'}</span>
-						)}
+						sortable
+						filter
+						filterElement={statusFilterTemplate}
 						bodyClassName="text-sm border border-gray-200 px-3 py-2"
 						headerClassName="bg-primary text-white text-md font-semibold border border-gray-200"
 					/>
+
+					<Column
+						header="Uploaded Receipt"
+						body={receiptBodyTemplate}
+						bodyClassName="text-sm border border-gray-200 px-3 py-2"
+						headerClassName="bg-primary text-white text-md font-semibold border border-gray-200"
+					/>
+					{/* <Column
+						header="Details"
+						body={(row) => (
+							<button
+								onClick={() => openDetails(row)}
+								className="text-indigo-600 hover:text-indigo-800"
+							>
+								<Eye className="w-5 h-5" />
+							</button>
+						)}
+						bodyClassName="text-sm border border-gray-200 px-3 py-2"
+						headerClassName="bg-primary text-white text-md font-semibold border border-gray-200"
+					/> */}
 					<Column
 						header="Actions"
 						body={actionsBody}
@@ -425,6 +588,99 @@ export default function ExpenseLog() {
 								)}
 							</div>
 						</div>
+					)}
+				</Dialog>
+
+				{/* Expense Details Dialog */}
+				<Dialog
+					header={<span className="font-semibold">Expense Details</span>}
+					visible={detailsVisible}
+					style={{ width: '60vw', maxWidth: '900px' }}
+					modal
+					draggable={false}
+					onHide={() => setDetailsVisible(false)}
+				>
+					{activeExpense ? (
+						<div className="space-y-4">
+							<div className="grid grid-cols-2 gap-4">
+								<div>
+									<div className="text-xs text-gray-500">Title</div>
+									<div className="font-medium">{activeExpense.title}</div>
+								</div>
+								<div>
+									<div className="text-xs text-gray-500">Date</div>
+									<div>{new Date(activeExpense.date).toLocaleString()}</div>
+								</div>
+								<div>
+									<div className="text-xs text-gray-500">Employee</div>
+									<div className="font-medium">{activeExpense.user?.name}</div>
+								</div>
+								<div>
+									<div className="text-xs text-gray-500">Category</div>
+									<div>{activeExpense.category}</div>
+								</div>
+								<div>
+									<div className="text-xs text-gray-500">Paid By</div>
+									<div>{activeExpense.paidBy?.name}</div>
+								</div>
+								<div>
+									<div className="text-xs text-gray-500">Amount</div>
+									<div>
+										{activeExpense.currency} {activeExpense.amount}
+									</div>
+								</div>
+							</div>
+
+							<div>
+								<div className="text-xs text-gray-500">Description</div>
+								<div className="mt-1">{activeExpense.description}</div>
+							</div>
+
+							<div>
+								<div className="text-xs text-gray-500">Approver Decisions</div>
+								<div className="mt-1 space-y-2">
+									{activeExpense.approverDecisions?.map((d, i) => (
+										<div key={i} className="p-2 border rounded">
+											<div className="text-sm">
+												<span className="font-medium">{d.userId}</span> —{' '}
+												{d.status}
+											</div>
+											{d.comment && (
+												<div className="text-xs text-slate-600 mt-1">
+													{d.comment}
+												</div>
+											)}
+											{d.decidedAt && (
+												<div className="text-xs text-slate-400 mt-1">
+													Decided at:{' '}
+													{new Date(d.decidedAt).toLocaleString()}
+												</div>
+											)}
+										</div>
+									))}
+								</div>
+							</div>
+
+							<div>
+								<div className="text-xs text-gray-500">Receipt</div>
+								<div className="mt-1">
+									{activeExpense.receipt ? (
+										<a
+											href={activeExpense.receipt}
+											target="_blank"
+											rel="noreferrer"
+											className="text-indigo-600 hover:underline"
+										>
+											Open Receipt
+										</a>
+									) : (
+										<span className="text-slate-400 italic">No receipt</span>
+									)}
+								</div>
+							</div>
+						</div>
+					) : (
+						<p className="text-center text-slate-500">No expense selected</p>
 					)}
 				</Dialog>
 			</div>

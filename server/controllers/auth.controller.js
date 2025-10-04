@@ -1,49 +1,71 @@
 const jwt = require('jsonwebtoken');
 const md5 = require('md5');
-// const userModel = require('../models/user.model');
-// const studentModel = require('../models/student.model');
-// const facultyModel = require('../models/faculty.model');
+const userModel = require('../models/user.model');
+const companyModel = require('../models/company.model');
 const { sendResetPasswordEmail } = require('../utils/mailer');
 
-async function login(req, res) {
-	const { username, password } = req.body;
-
-	if (!username || !password)
-		return res.status(400).json({ success: false, message: 'username and password required' });
-
-	let profile = null;
-	let user = await userModel.findOne({ username: username, password: md5(password) });
-	if (!user) return res.status(404).json({ message: 'User not found' });
-
-	if (user.role === 'STUDENT') {
-		profile = await studentModel.findOne({ userId: user._id });
-		if (!profile) return res.status(404).json({ message: 'Student profile not found' });
-	} else if (user.role === 'AUTHORITY') {
-		profile = await facultyModel.findOne({ userId: user._id });
-		if (!profile) return res.status(404).json({ message: 'Authority profile not found' });
+async function register(req, res) {
+	const { name, email, password, country, currency } = req.body;
+	if (!name || !email || !password || !country || !currency) {
+		return res.status(400).json({ success: false, message: 'All fields are required' });
 	}
+	// Check if user already exists
+	const existingUser = await userModel.findOne({ email: email.toLowerCase() });
+	if (existingUser) {
+		return res.status(400).json({ success: false, message: 'User already exists' });
+	}
+
+	const company = new companyModel({
+		name: name,
+		defaultCurrency: currency,
+		country,
+	});
+	await company.save();
+
+	// Create new user
+	const newUser = new userModel({
+		companyId: company._id,
+		name,
+		email: email.toLowerCase(),
+		password: md5(password),
+		role: 'Admin',
+		country,
+		currency,
+	});
+	await newUser.save();
+
+	res.status(201).json({
+		success: true,
+		message: 'Company created successfully',
+	});
+}
+
+async function login(req, res) {
+	const { email, password } = req.body;
+
+	if (!email || !password)
+		return res.status(400).json({ success: false, message: 'email and password required' });
+
+	let user = await userModel.findOne({ email: email.toLowerCase(), password: md5(password) });
+	if (!user) return res.status(404).json({ message: 'User not found' });
 
 	const token = jwt.sign(
 		{
 			_id: user._id,
-			permissions: user.permissions,
-			role: user.role == 'STUDENT' ? user.role : profile.role,
+			role: user.role,
 		},
 		process.env.JWT_SECRET,
 		{ expiresIn: '1d' }
 	);
 
-	user.currentToken = token;
-	await user.save();
-
 	res.json({
 		success: true,
 		data: {
 			token,
-			username: user.username,
-			role: user.role == 'STUDENT' ? user.role : profile.role,
+			email: user.email,
+			role: user.role,
 			_id: user._id,
-			profile: profile,
+			profile: user,
 		},
 	});
 }
@@ -188,6 +210,7 @@ async function changePassword(req, res) {
 }
 
 module.exports = {
+	register,
 	login,
 	logout,
 	forgotPassword,

@@ -4,6 +4,7 @@ const authController = require('../controllers/auth.controller');
 const { asyncRouteHandler } = require('../utils/route.utils');
 
 router.get('/verify', asyncRouteHandler(authController.verify));
+router.post('/register', asyncRouteHandler(authController.register));
 router.post('/login', asyncRouteHandler(authController.login));
 router.post('/logout', asyncRouteHandler(authController.logout));
 router.post('/forgot-password', asyncRouteHandler(authController.forgotPassword));
