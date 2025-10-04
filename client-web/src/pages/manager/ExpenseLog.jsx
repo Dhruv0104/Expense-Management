@@ -20,6 +20,8 @@ import PageLayout from '../../components/layout/PageLayout';
 import { fetchGet, fetchPost } from '../../utils/fetch.utils';
 
 export default function ExpenseLog() {
+	const currentUserId = localStorage.getItem('_id');
+
 	const [requests, setRequests] = useState([]);
 	const [filters, setFilters] = useState({
 		title: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -611,31 +613,22 @@ export default function ExpenseLog() {
 							<div>
 								<b>Approver Decisions:</b>
 								<div className="mt-2 space-y-2">
-									{activeExpense.approverDecisions?.length > 0 ? (
-										activeExpense.approverDecisions.map((d, i) => (
-											<div
-												key={i}
-												className={`border-l-4 p-3 rounded shadow-sm ${
-													d.status === 'APPROVED'
-														? 'border-green-500 bg-green-50'
-														: d.status === 'REJECTED'
-														? 'border-red-500 bg-red-50'
-														: 'border-yellow-500 bg-yellow-50'
-												}`}
-											>
-												<div className="text-sm font-medium">
-													{d.status} by {d.userId}
+									{activeExpense.approverDecisions?.filter(
+										(d) => d.userId === currentUserId
+									).length > 0 ? (
+										activeExpense.approverDecisions
+											.filter((d) => d.userId === currentUserId)
+											.map((d, i) => (
+												<div>
+													{d.comment && (
+														<p className="text-xs mt-1">{d.comment}</p>
+													)}
 												</div>
-												{d.comment && (
-													<p className="text-xs mt-1">{d.comment}</p>
-												)}
-												<p className="text-xs text-slate-500 mt-1">
-													{new Date(d.decidedAt).toLocaleString()}
-												</p>
-											</div>
-										))
+											))
 									) : (
-										<p className="text-slate-400 text-sm">No approvals yet</p>
+										<p className="text-slate-400 text-sm">
+											You have not made a decision yet
+										</p>
 									)}
 								</div>
 							</div>
