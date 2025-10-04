@@ -39,6 +39,7 @@ app.use(
 app.use('/auth', authRoutes);
 app.use('/admin', adminRoutes);
 app.use('/employee', employeeRoutes);
+app.use('/manager', managerRoutes);
 
 app.use(errorHandler);
 
