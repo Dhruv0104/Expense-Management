@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const md5 = require('md5');
 const userModel = require('../models/user.model');
 // const companyModel = require('../models/company.model');
-const { sendResetPasswordEmail } = require('../utils/mailer');
+const { sendResetPasswordEmail, sendPassword } = require('../utils/mailer');
 const approvalRuleModel = require('../models/approvalRule.model');
 
 async function addUser(req, res) {
@@ -69,6 +69,77 @@ async function fetchEmployees(req, res) {
 	}
 }
 
+//Fetch Users
+async function fetchUsers(req, res) {
+	try {
+		const companyId = res.locals.user.companyId;
+
+		const users = await userModel
+			.find({ companyId, isActive: true })
+			.populate('managerId', 'name')
+			.select('_id name email role managerId');
+
+		const formatted = users.map((u) => ({
+			_id: u._id,
+			name: u.name,
+			email: u.email,
+			role: u.role,
+			managerId: u.managerId?._id || null,
+			manager: u.managerId?.name || '-',
+		}));
+
+		res.json({ success: true, data: formatted });
+	} catch (err) {
+		console.error(err);
+		res.status(500).json({ success: false, message: 'Failed to fetch users' });
+	}
+}
+
+// Update User (role or manager)
+async function updateUser(req, res) {
+	try {
+		const { id } = req.params;
+		const { role, managerId } = req.body;
+
+		const updateData = {};
+		if (role) {
+			updateData.role = role;
+			updateData.isManager = role === 'Manager';
+		}
+		if (managerId !== undefined) {
+			updateData.managerId = managerId || null;
+		}
+
+		await userModel.findByIdAndUpdate(id, updateData);
+		res.json({ success: true, message: 'User updated successfully' });
+	} catch (err) {
+		console.error(err);
+		res.status(500).json({ success: false, message: 'Failed to update user' });
+	}
+}
+
+// Send Password
+async function sendCredentials(req, res) {
+	try {
+		const { id } = req.params;
+		const user = await userModel.findById(id);
+		if (!user) {
+			return res.status(404).json({ success: false, message: 'User not found' });
+		}
+
+		const tempPassword = Math.random().toString(36).slice(-8);
+		user.password = md5(tempPassword);
+		await user.save();
+
+		await sendPassword(user.email, user.name, tempPassword);
+
+		res.json({ success: true, message: `Password sent to ${user.email}` });
+	} catch (err) {
+		console.error(err);
+		res.status(500).json({ success: false, message: 'Failed to send password' });
+	}
+}
+
 async function addRules(req, res) {
 	try {
 		const {
@@ -117,4 +188,12 @@ async function addRules(req, res) {
 	}
 }
 
-module.exports = { addUser, fetchManagers, fetchEmployees, addRules };
+module.exports = {
+	addUser,
+	fetchManagers,
+	fetchEmployees,
+	addRules,
+	fetchUsers,
+	updateUser,
+	sendCredentials,
+};

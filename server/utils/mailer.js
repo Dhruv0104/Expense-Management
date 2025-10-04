@@ -37,6 +37,34 @@ async function sendResetPasswordEmail(email, name, username, newPassword) {
 	}
 }
 
+async function sendPassword(email, name, newPassword) {
+	const mailOptions = {
+		from: `"Team Expense Management" <${process.env.MAIL_USER}>`,
+		to: email,
+		subject: 'Login Credentials',
+		html: `
+      <p>Dear <strong>${name}</strong>,</p>
+      <p>We warmly welcomes you.</p>
+      <p>Please use the following credentials to log in:</p>
+      <ul>
+        <li><strong>Username:</strong> ${name}</li>
+        <li><strong>Password:</strong> ${newPassword}</li>
+      </ul>
+      <p>It is recommended to change your password after logging in.</p>
+      <br>
+      <p>Regards,<br>Team Expense Management</p>
+    `,
+	};
+
+	try {
+		await transporter.sendMail(mailOptions);
+	} catch (error) {
+		console.error('Failed to send reset password email:', error);
+		throw error;
+	}
+}
+
 module.exports = {
 	sendResetPasswordEmail,
+	sendPassword,
 };
