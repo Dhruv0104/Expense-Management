@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { InputText } from 'primereact/inputtext';
 import { Dropdown } from 'primereact/dropdown';
 import { Button } from 'primereact/button';
@@ -6,14 +6,7 @@ import PageLayout from '../../components/layout/PageLayout';
 import { Toast } from 'primereact/toast';
 import { useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { fetchPost } from '../../utils/fetch.utils';
-
-// Dummy manager list
-const managerList = [
-    { label: 'Alice Johnson', value: 'Alice Johnson' },
-    { label: 'Ethan Brown', value: 'Ethan Brown' },
-    { label: 'Charlie Lee', value: 'Charlie Lee' },
-];
+import { fetchPost, fetchGet } from '../../utils/fetch.utils';
 
 const roleOptions = [
     { label: 'Manager', value: 'Manager' },
@@ -36,7 +29,28 @@ function AddUser() {
         manager: '',
         email: '',
     });
+
+    const [managerList, setManagerList] = useState([]);
     const [loading, setLoading] = useState(false);
+
+    const fetchManagers = async () => {
+        try {
+            const response = await fetchGet({ pathName: 'admin/fetch-managers' });
+            if (response?.success) {
+                const options = response.data.map((m) => ({
+                    label: m.name,
+                    value: m._id,
+                }));
+                setManagerList(options);
+            }
+        } catch (err) {
+            console.error('Failed to fetch managers', err);
+        }
+    };
+
+    useEffect(() => {
+        fetchManagers();
+    }, []);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -65,7 +79,7 @@ function AddUser() {
                     detail: 'User added successfully',
                 });
                 setTimeout(() => {
-                    navigate('/admin/users'); // Redirect to dashboard/home after signup
+                    navigate('/admin/users');
                 }, 2000);
             } else {
                 toast.current.show({

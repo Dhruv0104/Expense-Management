@@ -12,11 +12,11 @@ import PageLayout from '../../components/layout/PageLayout';
 // Dummy JSON Data
 const dummyUsers = [
     { _id: 1, name: 'Alice Johnson', role: 'Manager', manager: '-', email: 'alice.johnson@example.com' },
-    { _id: 2, name: 'Bob Smith', role: 'Finance', manager: 'Alice Johnson', email: 'bob.smith@example.com' },
-    { _id: 3, name: 'Charlie Lee', role: 'Director', manager: '-', email: 'charlie.lee@example.com' },
-    { _id: 4, name: 'Dana White', role: 'Finance', manager: 'Charlie Lee', email: 'dana.white@example.com' },
+    { _id: 2, name: 'Bob Smith', role: 'Manager', manager: 'Alice Johnson', email: 'bob.smith@example.com' },
+    { _id: 3, name: 'Charlie Lee', role: 'Employee', manager: '-', email: 'charlie.lee@example.com' },
+    { _id: 4, name: 'Dana White', role: 'Employee', manager: 'Charlie Lee', email: 'dana.white@example.com' },
     { _id: 5, name: 'Ethan Brown', role: 'Manager', manager: '-', email: 'ethan.brown@example.com' },
-    { _id: 6, name: 'Fiona Green', role: 'Finance', manager: 'Alice Johnson', email: 'fiona.green@example.com' },
+    { _id: 6, name: 'Fiona Green', role: 'Employee', manager: 'Alice Johnson', email: 'fiona.green@example.com' },
     { _id: 7, name: 'George King', role: 'Employee', manager: '-', email: 'george.king@example.com' },
 ];
 
@@ -27,8 +27,6 @@ function UserList() {
     const roleOptions = [
         { label: 'Employee', value: 'Employee' },
         { label: 'Manager', value: 'Manager' },
-        { label: 'Finance', value: 'Finance' },
-        { label: 'Director', value: 'Director' },
     ];
 
     const [users, setUsers] = useState(dummyUsers);
@@ -135,7 +133,7 @@ function UserList() {
                     <div className="flex gap-2">
                         <Button
                             label="Add User"
-                            icon="pi pi-plus"
+                            icon="pi pi-user-plus"
                             className="bg-primary text-white text-lg font-medium px-3 py-2 rounded hover:bg-primary-hover"
                             onClick={() => navigate(`/admin/add-user`)}
                         />

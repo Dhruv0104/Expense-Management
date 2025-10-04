@@ -7,5 +7,6 @@ const { authMiddleware } = require('../middleware/auth.middleware');
 router.use(authMiddleware('Admin'));
 
 router.post('/add-user', asyncRouteHandler(adminController.addUser));
+router.get('/fetch-managers', asyncRouteHandler(adminController.fetchManagers));
 
 module.exports = router;
