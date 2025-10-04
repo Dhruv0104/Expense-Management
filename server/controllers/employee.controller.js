@@ -1,6 +1,8 @@
 const expenseModel = require('../models/expense.model');
 const userModel = require('../models/user.model');
 const approvalRuleModel = require('../models/approvalRule.model');
+const Tesseract = require('tesseract.js');
+const fs = require('fs');
 
 async function addExpense(req, res) {
 	const { title, date, category, paidBy, amount, currency, remarks, description } = req.body;
@@ -60,12 +62,109 @@ async function addExpense(req, res) {
 	}
 }
 
+async function addExpenseByOCR(req, res) {
+	try {
+		const userId = res.locals.user._id;
+		if (!userId) return res.status(401).json({ message: 'Unauthorized' });
+
+		const receiptPath = req.file ? req.file.path : null;
+		if (!receiptPath) return res.status(400).json({ message: 'Receipt file is required' });
+
+		let ocrData = {};
+
+		try {
+			const result = await Tesseract.recognize(receiptPath, 'eng');
+			const rawText = result.data.text || '';
+			const lines = rawText
+				.split(/\r?\n/)
+				.map((l) => l.trim())
+				.filter(Boolean);
+
+			const moneyRegex =
+				/(?:INR|₹|\$|USD|EUR|GBP|CAD|AUD)?\s*((?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d{2}))/gi;
+
+			let allAmounts = [];
+
+			lines.forEach((line) => {
+				let match;
+				while ((match = moneyRegex.exec(line)) !== null) {
+					const numericString = match[1].replace(/,/g, '');
+					const value = parseFloat(numericString);
+					if (!Number.isNaN(value)) {
+						allAmounts.push({ value, line });
+					}
+				}
+				moneyRegex.lastIndex = 0;
+			});
+
+			console.log('Filtered amounts found:', allAmounts);
+
+			let finalAmount = 0;
+			if (allAmounts.length) {
+				finalAmount = allAmounts.reduce(
+					(max, curr) => (curr.value > max ? curr.value : max),
+					0
+				);
+			}
+
+			const datePatterns = [
+				/(\d{2}[\/\-]\d{2}[\/\-]\d{4})/,
+				/(\d{4}[\/\-]\d{2}[\/\-]\d{2})/,
+				/(\d{1,2}\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sept|Sep|Oct|Nov|Dec)[a-z]*[.,]?\s+\d{4})/i,
+				/([A-Za-z]+ \d{1,2},\s*\d{4})/,
+				/(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2})/,
+			];
+			let parsedDate = null;
+			for (const pattern of datePatterns) {
+				const found = rawText.match(pattern);
+				if (found && found[1]) {
+					const d = new Date(found[1]);
+					if (!isNaN(d.getTime())) {
+						parsedDate = d;
+						break;
+					}
+				}
+			}
+			const expenseDate = parsedDate || new Date();
+
+			const merchantCandidate = lines.find((l) => !moneyRegex.test(l)) || 'Unknown Merchant';
+			const description = lines.slice(0, 10).join(' | ').substring(0, 500);
+
+			ocrData = {
+				title: merchantCandidate,
+				date: expenseDate,
+				category: 'Others',
+				paidBy: userId,
+				amount: finalAmount || 0,
+				currency: 'INR',
+				remarks: 'Auto-generated from OCR',
+				description,
+				receipt: receiptPath.slice(6),
+			};
+		} catch (error) {
+			console.error('OCR Processing Failed:', error);
+			return res.status(500).json({ message: 'Failed to process OCR', error: error.message });
+		}
+
+		const expense = new expenseModel({ userId, ...ocrData });
+		await expense.save();
+
+		return res.status(201).json({
+			message: 'Expense added successfully via OCR',
+			ocrExtracted: ocrData,
+			expense,
+		});
+	} catch (err) {
+		console.error('Error in submitByOCR:', err);
+		return res.status(500).json({ message: 'Internal server error', error: err.message });
+	}
+}
+
 async function fetchExpenses(req, res) {
 	try {
 		const companyId = res.locals.user.companyId;
 		const userId = res.locals.user._id;
 
-		// Fetch all expenses by user's company (or limit to user if required)
 		const expenses = await expenseModel
 			.find({ isActive: true, userId })
 			.populate('paidBy', 'name')
@@ -80,7 +179,7 @@ async function fetchExpenses(req, res) {
 			currency: e.currency || 'USD',
 			status: e.status.charAt(0).toUpperCase() + e.status.slice(1).toLowerCase(), // e.g. Approved
 			paidBy: e.paidBy?.name || '-',
-			remarks: e.description || '-',
+			remarks: e.remarks || '-',
 		}));
 
 		res.json({ success: true, data: formatted });
@@ -103,6 +202,7 @@ async function fetchInfo(req, res) {
 
 module.exports = {
 	addExpense,
+	addExpenseByOCR,
 	fetchExpenses,
 	fetchInfo,
 };

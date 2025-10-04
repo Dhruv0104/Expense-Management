@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Button } from 'primereact/button';
 import { Tooltip } from 'primereact/tooltip';
+import { Toast } from 'primereact/toast';
+import { Paperclip } from 'lucide-react';
 import {
 	ArrowUpDown,
 	ArrowDownNarrowWide,
@@ -14,12 +16,13 @@ import PageLayout from '../../components/layout/PageLayout';
 import { fetchGet } from '../../utils/fetch.utils';
 
 export default function ExpensesHistory() {
-
 	const [filters, setFilters] = useState({});
 	const [globalFilterValue, setGlobalFilterValue] = useState('');
 	const [rowsPerPage, setRowsPerPage] = useState(5);
 	const [currentPage, setCurrentPage] = useState(0);
 	const [expenses, setExpenses] = useState([]);
+	const [formData, setFormData] = useState({ ocrReceipt: null });
+	const toast = useRef(null);
 
 	const navigate = useNavigate();
 	const fetchExpenses = async () => {
@@ -67,14 +70,15 @@ export default function ExpensesHistory() {
 		const status = row.status;
 		return (
 			<span
-				className={`px-3 py-1 rounded-full text-sm font-medium ${status === 'Approved'
-					? 'bg-green-100 text-green-800'
-					: status === 'Rejected'
+				className={`px-3 py-1 rounded-full text-sm font-medium ${
+					status === 'Approved'
+						? 'bg-green-100 text-green-800'
+						: status === 'Rejected'
 						? 'bg-red-100 text-red-800'
 						: status === 'Pending'
-							? 'bg-yellow-100 text-yellow-800'
-							: 'bg-gray-200 text-gray-800'
-					}`}
+						? 'bg-yellow-100 text-yellow-800'
+						: 'bg-gray-200 text-gray-800'
+				}`}
 			>
 				{status}
 			</span>
@@ -93,14 +97,106 @@ export default function ExpensesHistory() {
 		</>
 	);
 
-	// Compute totals for cards
+	const handleOcrSubmit = async () => {
+		try {
+			if (!formData.ocrReceipt) {
+				toast.current.show({
+					severity: 'warn',
+					summary: 'No File Selected',
+					detail: 'Please upload a file before posting.',
+					life: 2000,
+				});
+				return;
+			}
+
+			const payload = new FormData();
+			payload.append('receipt', formData.ocrReceipt);
+
+			const token = localStorage.getItem('token');
+			const res = await fetch(`${import.meta.env.VITE_URL}employee/submit-by-ocr`, {
+				method: 'POST',
+				headers: { Authorization: `Bearer ${token}` },
+				body: payload,
+			});
+
+			const data = await res.json();
+
+			if (res.ok) {
+				setTimeout(() => {
+					setFormData({ ocrReceipt: null });
+					toast.current.show({
+						severity: 'success',
+						summary: 'Success',
+						detail: 'Expense submitted successful!',
+						life: 900,
+					});
+					// window.location.reload();
+				}, 900);
+			} else {
+				throw new Error(data.message || 'Submission failed');
+			}
+		} catch (error) {
+			console.error(error);
+			toast.current.show({
+				severity: 'error',
+				summary: 'Error',
+				detail: error.message || 'Failed to submit OCR document.',
+				life: 2000,
+			});
+		}
+	};
+
 	const [totals, setTotals] = useState({ Draft: 0, Pending: 0, Approved: 0 });
+	const btnClasses =
+		'bg-primary text-white text-lg px-5 py-2 rounded hover:primary-hover font-semibold';
 
 	return (
 		<PageLayout>
+			<Toast ref={toast} />
 			<div className="container p-5">
-				<div className="flex items-center gap-1 mb-7">
+				<div className="flex justify-between items-center gap-1 mb-7">
 					<h1 className="text-3xl font-bold text-primary">Expense History</h1>
+					<div className="flex items-center gap-6 cursor-pointer">
+						<div className="relative inline-block cursor-pointer">
+							<label
+								htmlFor="ocrUpload"
+								className={`cursor-pointer inline-flex items-center justify-center font-normal ${btnClasses}`}
+							>
+								Attach Receipt
+							</label>
+							<input
+								id="ocrUpload"
+								type="file"
+								name="ocrReceipt"
+								accept="image/*,application/pdf"
+								onChange={(e) =>
+									setFormData({ ...formData, ocrReceipt: e.target.files[0] })
+								}
+								className="absolute inset-0 opacity-0 cursor-pointer"
+							/>
+						</div>
+						{formData?.ocrReceipt && (
+							<div className="flex items-center gap-4 bg-gray-100 px-4 py-2 rounded-lg shadow-sm">
+								<h4 className="text-base font-semibold text-gray-700 flex items-center gap-2">
+									<Paperclip size={18} /> {formData.ocrReceipt.name}
+								</h4>
+								<Button
+									icon="pi pi-trash"
+									className="p-button-rounded p-button-text p-button-danger ml-2"
+									onClick={() => setFormData({ ...formData, ocrReceipt: null })}
+									aria-label="Remove File"
+								/>
+							</div>
+						)}
+
+						{formData?.ocrReceipt && (
+							<Button
+								label="Submit"
+								className={`w-32 ${btnClasses}`}
+								onClick={handleOcrSubmit}
+							/>
+						)}
+					</div>
 				</div>
 
 				<div className="flex gap-6 mb-10">

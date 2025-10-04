@@ -12,6 +12,11 @@ router.post(
 	upload.single('receipt'),
 	asyncRouteHandler(employeeController.addExpense)
 );
+router.post(
+	'/submit-by-ocr',
+	upload.single('receipt'),
+	asyncRouteHandler(employeeController.addExpenseByOCR)
+);
 router.get('/fetch-expenses', asyncRouteHandler(employeeController.fetchExpenses));
 router.get('/profile', asyncRouteHandler(employeeController.fetchInfo));
 

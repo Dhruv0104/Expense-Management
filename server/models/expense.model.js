@@ -11,6 +11,7 @@ const expenseSchema = new mongoose.Schema(
 		currency: { type: String, required: true }, // e.g. "INR", "USD"
 		amount: { type: Number, required: true },
 		description: { type: String, required: true },
+		remarks: { type: String, required: true },
 		status: {
 			type: String,
 			enum: ['DRAFT', 'PENDING', 'APPROVED', 'REJECTED'],
