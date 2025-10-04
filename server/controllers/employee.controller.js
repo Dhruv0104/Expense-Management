@@ -1,5 +1,6 @@
 const expenseModel = require('../models/expense.model');
 const userModel = require('../models/user.model');
+const approvalRuleModel = require('../models/approvalRule.model');
 
 async function addExpense(req, res) {
 	const { title, date, category, paidBy, amount, currency, remarks, description } = req.body;
@@ -24,6 +25,31 @@ async function addExpense(req, res) {
 		description,
 		receipt: receipt.slice(6),
 	});
+
+	const rules = await approvalRuleModel.findOne({
+		isActive: true,
+		userId: res.locals.user._id,
+	});
+
+	expense.ruleId = rules ? rules._id : null;
+	const approvers = [];
+	if (rules.isManagerApproved) {
+		approvers.push({ userId: rules.managerId, status: 'PENDING', isActive: true });
+		rules.approvers.forEach((approver) => {
+			approvers.push({ userId: approver.userId, status: 'PENDING', isActive: false });
+		});
+	} else {
+		rules.approvers.forEach((approver, index) => {
+			if (index === 0 && rules.isApproversSequential) {
+				approvers.push({ userId: approver.userId, status: 'PENDING', isActive: true });
+			} else if (!rules.isApproversSequential) {
+				approvers.push({ userId: approver.userId, status: 'PENDING', isActive: true });
+			} else {
+				approvers.push({ userId: approver.userId, status: 'PENDING', isActive: false });
+			}
+		});
+	}
+	expense.approverDecisions = approvers;
 
 	try {
 		await expense.save();

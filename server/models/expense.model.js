@@ -27,6 +27,7 @@ const expenseSchema = new mongoose.Schema(
 				},
 				comment: { type: String },
 				decidedAt: { type: Date },
+				isActive: { type: Boolean, default: false },
 			},
 		],
 		startedAt: { type: Date, default: Date.now },
