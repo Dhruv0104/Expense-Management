@@ -126,65 +126,68 @@ export default function Register() {
 
 					<h2 className="text-3xl font-bold text-primary text-center my-10">Sign Up</h2>
 
-					{/* Name */}
-					<div className="mb-4">
-						<label htmlFor="name" className="block text-primary font-medium mb-1">
-							Name
-						</label>
-						<InputText
-							id="name"
-							value={name}
-							onChange={(e) => setName(e.target.value)}
-							placeholder="Enter your name"
-							className="w-full p-3 rounded border border-gray-300 transition-all focus:ring-2 focus:ring-primary hover:border-primary"
-						/>
+					{/* Name + Email in 1 row */}
+					<div className="flex flex-col sm:flex-row gap-4 mb-4">
+						<div className="flex-1">
+							<label htmlFor="name" className="block text-primary font-medium mb-1">
+								Name
+							</label>
+							<InputText
+								id="name"
+								value={name}
+								onChange={(e) => setName(e.target.value)}
+								placeholder="Enter your name"
+								className="w-full p-3 rounded border border-gray-300 transition-all focus:ring-2 focus:ring-primary hover:border-primary"
+							/>
+						</div>
+						<div className="flex-1">
+							<label htmlFor="email" className="block text-primary font-medium mb-1">
+								Email
+							</label>
+							<InputText
+								id="email"
+								value={email}
+								onChange={(e) => setEmail(e.target.value)}
+								placeholder="Enter your email"
+								className="w-full p-3 rounded border border-gray-300 transition-all focus:ring-2 focus:ring-primary hover:border-primary"
+							/>
+						</div>
 					</div>
 
-					{/* Email */}
-					<div className="mb-4">
-						<label htmlFor="email" className="block text-primary font-medium mb-1">
-							Email
-						</label>
-						<InputText
-							id="email"
-							value={email}
-							onChange={(e) => setEmail(e.target.value)}
-							placeholder="Enter your email"
-							className="w-full p-3 rounded border border-gray-300 transition-all focus:ring-2 focus:ring-primary hover:border-primary"
-						/>
-					</div>
-
-					{/* Password */}
-					<div className="mb-4">
-						<label htmlFor="password" className="block text-primary font-medium mb-1">
-							Password
-						</label>
-						<InputText
-							id="password"
-							type="password"
-							value={password}
-							onChange={(e) => setPassword(e.target.value)}
-							placeholder="Enter your password"
-							className="w-full p-3 rounded border border-gray-300 transition-all focus:ring-2 focus:ring-primary hover:border-primary"
-						/>
-					</div>
-
-					{/* Confirm Password */}
-					<div className="mb-4">
-						<label
-							htmlFor="confirmPassword"
-							className="block text-primary font-medium mb-1"
-						>
-							Confirm Password
-						</label>
-						<InputText
-							id="confirmPassword"
-							type="password"
-							value={confirmPassword}
-							onChange={(e) => setConfirmPassword(e.target.value)}
-							placeholder="Re-enter your password"
-							className="w-full p-3 rounded border border-gray-300 transition-all focus:ring-2 focus:ring-primary hover:border-primary"
-						/>
+					{/* Password + Confirm Password in 1 row */}
+					<div className="flex flex-col sm:flex-row gap-4 mb-4">
+						<div className="flex-1">
+							<label
+								htmlFor="password"
+								className="block text-primary font-medium mb-1"
+							>
+								Password
+							</label>
+							<InputText
+								id="password"
+								type="password"
+								value={password}
+								onChange={(e) => setPassword(e.target.value)}
+								placeholder="Enter your password"
+								className="w-full p-3 rounded border border-gray-300 transition-all focus:ring-2 focus:ring-primary hover:border-primary"
+							/>
+						</div>
+						<div className="flex-1">
+							<label
+								htmlFor="confirmPassword"
+								className="block text-primary font-medium mb-1"
+							>
+								Confirm Password
+							</label>
+							<InputText
+								id="confirmPassword"
+								type="password"
+								value={confirmPassword}
+								onChange={(e) => setConfirmPassword(e.target.value)}
+								placeholder="Re-enter your password"
+								className="w-full p-3 rounded border border-gray-300 transition-all focus:ring-2 focus:ring-primary hover:border-primary"
+							/>
+						</div>
 					</div>
 
 					{/* Country + Currency */}
