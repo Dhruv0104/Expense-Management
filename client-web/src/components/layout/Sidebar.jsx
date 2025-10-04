@@ -7,9 +7,10 @@ import {
 	Users,
 	UserRoundPlus,
 	SlidersHorizontal,
+	HandCoins,
+	History
 } from 'lucide-react';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
-import { FaChalkboardTeacher, FaFileAlt } from 'react-icons/fa';
 
 export default function Sidebar({ isVisible, onClose }) {
 	const navigate = useNavigate();
@@ -32,40 +33,40 @@ export default function Sidebar({ isVisible, onClose }) {
 				route: '/admin/users',
 			},
 			{
-				label: 'Add Users',
-				icon: <UserRoundPlus size={23} />,
-				route: '/admin/add-user',
-			},
-			{
 				label: 'Approval Rules',
 				icon: <SlidersHorizontal size={23} />,
 				route: '/admin/approval-rules',
 			},
 		],
-		// producer: [
-		// 	{
-		// 		label: 'Dashboard',
-		// 		icon: <LayoutDashboard size={23} />,
-		// 		route: '/producer/dashboard',
-		// 	},
-		// 	{
-		// 		label: 'My Subsidies',
-		// 		icon: <FaFileAlt size={23} />,
-		// 		route: '/producer/subsidies',
-		// 	},
-		// ],
-		// auditor: [
-		// 	{
-		// 		label: 'Dashboard',
-		// 		icon: <LayoutDashboard size={23} />,
-		// 		route: '/auditor/dashboard',
-		// 	},
-		// 	{
-		// 		label: 'Verify Milestones',
-		// 		icon: <Verified size={23} />,
-		// 		route: '/auditor/verify-milestones',
-		// 	},
-		// ],
+		Manager: [
+			{
+				label: 'Dashboard',
+				icon: <LayoutDashboard size={23} />,
+				route: '/manager/dashboard',
+			},
+			{
+				label: 'Expense Log',
+				icon: <History size={23} />,
+				route: '/manager/expense-log',
+			},
+		],
+		Employee: [
+			{
+				label: 'Dashboard',
+				icon: <LayoutDashboard size={23} />,
+				route: '/employee/dashboard',
+			},
+			{
+				label: 'Expense Request',
+				icon: <HandCoins size={23} />,
+				route: '/employee/submit-expense',
+			},
+			{
+				label: 'Expenses Log',
+				icon: <History size={23} />,
+				route: '/employee/expenses-history',
+			},
+		],
 	};
 
 	const handleLogout = async () => {
