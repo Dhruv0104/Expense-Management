@@ -14,6 +14,7 @@ import ManagerDashboard from './pages/manager/ManagerDashboard';
 import EmployeeDashbaord from './pages/employee/Dashboard';
 import ProfilePage from './pages/manager/Profile';
 import EmployeeProfilePage from './pages/employee/Profile';
+import AdminDashboard from './pages/admin/AdminDashboard';
 
 const routes = createBrowserRouter([
 	{
@@ -42,7 +43,7 @@ const routes = createBrowserRouter([
 		// loader: verifyLoader('admin'),
 		// errorElement: <ErrorElement />,
 		children: [
-			// { path: 'dashboard', element: <AdminDashboard /> },
+			{ path: 'dashboard', element: <AdminDashboard /> },
 			{ path: 'users', element: <UserList /> },
 			{ path: 'add-user', element: <AddUser /> },
 			{ path: 'approval-rules', element: <ApprovalRules /> },

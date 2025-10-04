@@ -4,6 +4,7 @@ const userModel = require('../models/user.model');
 // const companyModel = require('../models/company.model');
 const { sendResetPasswordEmail, sendPassword } = require('../utils/mailer');
 const approvalRuleModel = require('../models/approvalRule.model');
+const expenseModel = require('../models/expense.model');
 
 async function addUser(req, res) {
 	const { name, role, manager, email } = req.body;
@@ -188,6 +189,86 @@ async function addRules(req, res) {
 	}
 }
 
+async function getDashboardStats(req, res) {
+	try {
+		const companyId = res.locals.user.companyId;
+
+		const totalUsers = await userModel.countDocuments({ companyId, isActive: true });
+		const totalManagers = await userModel.countDocuments({
+			companyId,
+			role: 'Manager',
+			isActive: true,
+		});
+		const totalEmployees = await userModel.countDocuments({
+			companyId,
+			role: 'Employee',
+			isActive: true,
+		});
+
+		const totalPendingRequests = await expenseModel.countDocuments({
+			userId: { $in: await userModel.find({ companyId }).distinct('_id') },
+			status: 'PENDING',
+			isActive: true,
+		});
+
+		const totalApprovedRequests = await expenseModel.countDocuments({
+			userId: { $in: await userModel.find({ companyId }).distinct('_id') },
+			status: 'APPROVED',
+			isActive: true,
+		});
+
+		const totalRejectedRequests = await expenseModel.countDocuments({
+			userId: { $in: await userModel.find({ companyId }).distinct('_id') },
+			status: 'REJECTED',
+			isActive: true,
+		});
+
+		const totalExpenseData = await expenseModel.aggregate([
+			{
+				$match: {
+					status: 'APPROVED',
+					isActive: true,
+					userId: { $in: await userModel.find({ companyId }).distinct('_id') },
+				},
+			},
+			{ $group: { _id: null, total: { $sum: '$amount' } } },
+		]);
+
+		const totalExpense = totalExpenseData[0]?.total || 0;
+
+		res.json({
+			success: true,
+			data: {
+				totalUsers,
+				totalManagers,
+				totalEmployees,
+				totalPendingRequests,
+				totalApprovedRequests,
+				totalRejectedRequests,
+				totalExpense,
+			},
+		});
+	} catch (err) {
+		console.error('Dashboard stats error:', err);
+		res.status(500).json({ success: false, message: 'Failed to fetch dashboard stats' });
+	}
+}
+
+// Fetch All Expenses (Requests)
+async function fetchExpenses(req, res) {
+	try {
+		const companyId = res.locals.user.companyId;
+		const expenses = await expenseModel
+			.find({ companyId, isActive: true })
+			.populate('userId', 'name email')
+			.sort({ createdAt: -1 });
+		res.json({ success: true, data: expenses });
+	} catch (err) {
+		console.error(err);
+		res.status(500).json({ success: false, message: 'Failed to fetch expenses' });
+	}
+}
+
 module.exports = {
 	addUser,
 	fetchManagers,
@@ -196,4 +277,6 @@ module.exports = {
 	fetchUsers,
 	updateUser,
 	sendCredentials,
+	getDashboardStats,
+	fetchExpenses,
 };
