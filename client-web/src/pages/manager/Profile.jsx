@@ -30,7 +30,7 @@ export default function ProfilePage() {
 
 	useEffect(() => {
 		async function loadProfile() {
-			const response = await fetchGet({ pathName: 'user/profile', token });
+			const response = await fetchGet({ pathName: 'manager/profile', token });
 			const updatedProfile = {
 				...profile,
 				name: response.data.name,

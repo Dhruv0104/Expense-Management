@@ -17,81 +17,7 @@ import {
 	ReceiptText,
 } from 'lucide-react';
 import PageLayout from '../../components/layout/PageLayout';
-import { fetchGet } from '../../utils/fetch.utils';
-
-// Mock expenses matching the server expense model
-// const initialRequests = [
-// 	{
-// 		_id: 'EXP-001',
-// 		title: 'Flight to Conference',
-// 		date: '2025-09-20T10:00:00.000Z',
-// 		user: { _id: 'U1', name: 'Sarah Johnson', email: 'sarah@example.com' },
-// 		category: 'Travel',
-// 		paidBy: { _id: 'U1', name: 'Sarah Johnson' },
-// 		status: 'PENDING',
-// 		approverDecisions: [{ userId: 'M1', status: 'PENDING', comment: '', decidedAt: null }],
-// 		amount: 12500,
-// 		currency: 'INR',
-// 		description: 'Flight ticket and airport taxi',
-// 		receipt: 'https://via.placeholder.com/800x600.png?text=Receipt+EXP-001',
-// 	},
-// 	{
-// 		_id: 'EXP-002',
-// 		title: 'Team Lunch',
-// 		date: '2025-09-18T13:30:00.000Z',
-// 		user: { _id: 'U2', name: 'Mark Lee', email: 'mark@example.com' },
-// 		category: 'Food',
-// 		paidBy: { _id: 'U2', name: 'Mark Lee' },
-// 		status: 'PENDING',
-// 		approverDecisions: [{ userId: 'M1', status: 'PENDING', comment: '', decidedAt: null }],
-// 		amount: 2300,
-// 		currency: 'INR',
-// 		description: 'Team lunch after project milestone',
-// 		receipt: null,
-// 	},
-// 	{
-// 		_id: 'EXP-003',
-// 		title: 'Stationery Purchase',
-// 		date: '2025-09-15T09:00:00.000Z',
-// 		user: { _id: 'U3', name: 'Anita Gomez', email: 'anita@example.com' },
-// 		category: 'Supplies',
-// 		paidBy: { _id: 'U3', name: 'Anita Gomez' },
-// 		status: 'APPROVED',
-// 		approverDecisions: [
-// 			{
-// 				userId: 'M1',
-// 				status: 'APPROVED',
-// 				comment: 'Approved as per budget policy',
-// 				decidedAt: '2025-09-16T12:00:00.000Z',
-// 			},
-// 		],
-// 		amount: 780,
-// 		currency: 'INR',
-// 		description: 'Office stationery',
-// 		receipt: 'https://via.placeholder.com/800x600.png?text=Receipt+EXP-003',
-// 	},
-// 	{
-// 		_id: 'EXP-004',
-// 		title: 'Online Training',
-// 		date: '2025-09-12T15:00:00.000Z',
-// 		user: { _id: 'U4', name: 'John Doe', email: 'john@example.com' },
-// 		category: 'Training',
-// 		paidBy: { _id: 'U4', name: 'John Doe' },
-// 		status: 'REJECTED',
-// 		approverDecisions: [
-// 			{
-// 				userId: 'M1',
-// 				status: 'REJECTED',
-// 				comment: 'Not aligned with current training plan',
-// 				decidedAt: '2025-09-13T10:00:00.000Z',
-// 			},
-// 		],
-// 		amount: 4500,
-// 		currency: 'INR',
-// 		description: 'Course fee',
-// 		receipt: null,
-// 	},
-// ];
+import { fetchGet, fetchPost } from '../../utils/fetch.utils';
 
 export default function ExpenseLog() {
 	const [requests, setRequests] = useState([]);
@@ -120,6 +46,7 @@ export default function ExpenseLog() {
 		const loadExpenses = async () => {
 			setLoading(true);
 			const res = await fetchGet({ pathName: 'manager/expense-logs' });
+			console.log(res.data);
 			if (res && res.success !== false) {
 				setRequests(res.data);
 			} else {
@@ -207,10 +134,36 @@ export default function ExpenseLog() {
 		});
 	};
 
-	const confirmAction = () => {
+	const confirmAction = async () => {
 		if (!selectedRequest || !dialogType) return;
-		const newStatus = dialogType === 'approve' ? 'Approved' : 'Rejected';
-		updateStatus(selectedRequest.id, newStatus, actionMessage);
+		const newStatus = dialogType === 'approve' ? 'APPROVED' : 'REJECTED';
+
+		const body = {
+			status: selectedRequest.status,
+			requestId: selectedRequest._id,
+			comment: actionMessage,
+		};
+
+		const res = await fetchPost({
+			pathName: 'manager/accept-request',
+			body: JSON.stringify(body),
+		});
+		if (res.success) {
+			updateStatus(selectedRequest._id, newStatus, actionMessage);
+			toast.current?.show({
+				severity: 'success',
+				summary: `${newStatus}`,
+				detail: res.message,
+				life: 3000,
+			});
+		} else {
+			toast.current?.show({
+				severity: 'error',
+				summary: 'Error',
+				detail: res.message,
+				life: 3000,
+			});
+		}
 		closeDialog();
 	};
 
@@ -564,7 +517,7 @@ export default function ExpenseLog() {
 									</span>{' '}
 									request{' '}
 									<span className="font-mono text-indigo-600">
-										{selectedRequest.id}
+										{selectedRequest._id}
 									</span>{' '}
 									submitted by{' '}
 									<span className="font-semibold">
@@ -609,7 +562,7 @@ export default function ExpenseLog() {
 
 				{/* Expense Details Dialog */}
 				<Dialog
-					header={<span className="font-semibold">Expense Details</span>}
+					header={<span className="font-semibold text-lg">Expense Details</span>}
 					visible={detailsVisible}
 					style={{ width: '60vw', maxWidth: '900px' }}
 					modal
@@ -617,68 +570,79 @@ export default function ExpenseLog() {
 					onHide={() => setDetailsVisible(false)}
 				>
 					{activeExpense ? (
-						<div className="space-y-4">
+						<div className="space-y-6">
+							{/* Header Info */}
+							<div className="bg-indigo-50 border-l-4 border-indigo-500 p-4 rounded-lg shadow-sm">
+								<h3 className="text-lg font-semibold text-indigo-700">
+									{activeExpense.title}
+								</h3>
+								<p className="text-sm text-slate-600">
+									Submitted by <b>{activeExpense.user?.name}</b> on{' '}
+									{new Date(activeExpense.date).toLocaleDateString()}
+								</p>
+							</div>
+
+							{/* Info Grid */}
 							<div className="grid grid-cols-2 gap-4">
 								<div>
-									<div className="text-xs text-gray-500">Title</div>
-									<div className="font-medium">{activeExpense.title}</div>
+									<b>Category:</b> {activeExpense.category}
 								</div>
 								<div>
-									<div className="text-xs text-gray-500">Date</div>
-									<div>{new Date(activeExpense.date).toLocaleString()}</div>
+									<b>Paid By:</b> {activeExpense.paidBy?.name || '—'}
 								</div>
 								<div>
-									<div className="text-xs text-gray-500">Employee</div>
-									<div className="font-medium">{activeExpense.user?.name}</div>
+									<b>Amount:</b> {activeExpense.currency} {activeExpense.amount}
 								</div>
 								<div>
-									<div className="text-xs text-gray-500">Category</div>
-									<div>{activeExpense.category}</div>
-								</div>
-								<div>
-									<div className="text-xs text-gray-500">Paid By</div>
-									<div>{activeExpense.paidBy?.name}</div>
-								</div>
-								<div>
-									<div className="text-xs text-gray-500">Amount</div>
-									<div>
-										{activeExpense.currency} {activeExpense.amount}
-									</div>
+									<b>Status:</b>{' '}
+									<span className="font-semibold">{activeExpense.status}</span>
 								</div>
 							</div>
 
+							{/* Description */}
 							<div>
-								<div className="text-xs text-gray-500">Description</div>
-								<div className="mt-1">{activeExpense.description}</div>
+								<b>Description:</b>
+								<p className="mt-1 bg-slate-50 p-3 rounded-md border text-sm">
+									{activeExpense.description || 'No description provided'}
+								</p>
 							</div>
 
+							{/* Approver Decisions */}
 							<div>
-								<div className="text-xs text-gray-500">Approver Decisions</div>
-								<div className="mt-1 space-y-2">
-									{activeExpense.approverDecisions?.map((d, i) => (
-										<div key={i} className="p-2 border rounded">
-											<div className="text-sm">
-												<span className="font-medium">{d.userId}</span> —{' '}
-												{d.status}
-											</div>
-											{d.comment && (
-												<div className="text-xs text-slate-600 mt-1">
-													{d.comment}
+								<b>Approver Decisions:</b>
+								<div className="mt-2 space-y-2">
+									{activeExpense.approverDecisions?.length > 0 ? (
+										activeExpense.approverDecisions.map((d, i) => (
+											<div
+												key={i}
+												className={`border-l-4 p-3 rounded shadow-sm ${
+													d.status === 'APPROVED'
+														? 'border-green-500 bg-green-50'
+														: d.status === 'REJECTED'
+														? 'border-red-500 bg-red-50'
+														: 'border-yellow-500 bg-yellow-50'
+												}`}
+											>
+												<div className="text-sm font-medium">
+													{d.status} by {d.userId}
 												</div>
-											)}
-											{d.decidedAt && (
-												<div className="text-xs text-slate-400 mt-1">
-													Decided at:{' '}
+												{d.comment && (
+													<p className="text-xs mt-1">{d.comment}</p>
+												)}
+												<p className="text-xs text-slate-500 mt-1">
 													{new Date(d.decidedAt).toLocaleString()}
-												</div>
-											)}
-										</div>
-									))}
+												</p>
+											</div>
+										))
+									) : (
+										<p className="text-slate-400 text-sm">No approvals yet</p>
+									)}
 								</div>
 							</div>
 
+							{/* Receipt */}
 							<div>
-								<div className="text-xs text-gray-500">Receipt</div>
+								<b>Receipt:</b>
 								<div className="mt-1">
 									{activeExpense.receipt ? (
 										<a
@@ -687,10 +651,10 @@ export default function ExpenseLog() {
 											rel="noreferrer"
 											className="text-indigo-600 hover:underline"
 										>
-											Open Receipt
+											View Receipt
 										</a>
 									) : (
-										<span className="text-slate-400 italic">No receipt</span>
+										<span className="text-slate-400 italic">Not uploaded</span>
 									)}
 								</div>
 							</div>

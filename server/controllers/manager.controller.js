@@ -1,4 +1,5 @@
 const expenseModel = require('../models/expense.model');
+const userModel = require('../models/user.model');
 
 const getExpense = async (req, res) => {
 	// const expenses
@@ -11,7 +12,7 @@ const getExpense = async (req, res) => {
 	// Map expenses to desired format
 	const formattedExpenses = expenses.map((exp, index) => {
 		return {
-			_id: `EXP-${String(index + 1).padStart(3, '0')}`,
+			_id: exp._id,
 			title: exp.title,
 			date: exp.date,
 			user: exp.userId
@@ -41,6 +42,38 @@ const getExpense = async (req, res) => {
 	res.json({ data: formattedExpenses });
 };
 
+const acceptRequest = async (req, res) => {
+	const { requestId, status, comment } = req.body;
+	const userId = res.locals.user._id;
+	console.log(userId);
+	const expense = await expenseModel.findById(requestId);
+	const approver = expense.approverDecisions.find((a) => a.userId === userId);
+	console.log('approver', approver);
+	approver.status = status;
+	approver.comment = comment || '';
+	approver.decidedAt = new Date();
+	await expense.save();
+
+	res.json({
+		success: true,
+		message: `Request successfully ${action}d`,
+		data: expense,
+	});
+};
+
+async function fetchInfo(req, res) {
+	const userId = res.locals.user._id;
+	const userDetails = await userModel.findOne({ _id: userId });
+	const details = {
+		name: userDetails.name,
+		email: userDetails.email,
+	};
+
+	res.json({ data: details });
+}
+
 module.exports = {
 	getExpense,
+	acceptRequest,
+	fetchInfo,
 };

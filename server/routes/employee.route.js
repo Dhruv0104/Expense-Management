@@ -13,5 +13,6 @@ router.post(
 	asyncRouteHandler(employeeController.addExpense)
 );
 router.get('/fetch-expenses', asyncRouteHandler(employeeController.fetchExpenses));
+router.get('/profile', asyncRouteHandler(employeeController.fetchInfo));
 
 module.exports = router;

@@ -1,4 +1,5 @@
 const expenseModel = require('../models/expense.model');
+const userModel = require('../models/user.model');
 
 async function addExpense(req, res) {
 	const { title, date, category, paidBy, amount, currency, remarks, description } = req.body;
@@ -63,7 +64,19 @@ async function fetchExpenses(req, res) {
 	}
 }
 
+async function fetchInfo(req, res) {
+	const userId = res.locals.user._id;
+	const userDetails = await userModel.findOne({ _id: userId });
+	const details = {
+		name: userDetails.name,
+		email: userDetails.email,
+	};
+
+	res.json({ data: details });
+}
+
 module.exports = {
 	addExpense,
 	fetchExpenses,
+	fetchInfo,
 };
