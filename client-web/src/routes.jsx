@@ -3,7 +3,7 @@ import { loginLoader, verifyLoader } from './loaders/verify.loader';
 import ErrorElement from './components/ErrorElement';
 // import Home from './pages/Home';
 import Login from './pages/auth/Login';
-// import Registration from './pages/Producers/Registration';
+import Register from './pages/auth/Register';
 import SubmitExpense from './pages/employee/SubmitExpense';
 import ExpenseLog from './pages/manager/ExpenseLog';
 import ExpensesHistory from './pages/employee/ExpensesHistory';
@@ -21,6 +21,11 @@ const routes = createBrowserRouter([
 		path: '/login',
 		// loader: loginLoader,
 		element: <Login />,
+	},
+	{
+		path: '/register',
+		// loader: loginLoader,
+		element: <Register />,
 	},
 	// {
 	// 	path: '/forgot-password',

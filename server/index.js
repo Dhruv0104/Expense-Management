@@ -33,9 +33,6 @@ app.use(
 );
 
 //Routes
-app.get('/', (req, res) => {
-	res.json({ message: 'Welcome to the server!' });
-});
 app.use('/auth', authRoutes);
 
 app.use(errorHandler);
