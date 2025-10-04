@@ -15,6 +15,7 @@ const { errorHandler, asyncRouteHandler } = require('./utils/route.utils');
 const authRoutes = require('./routes/auth.route');
 const adminRoutes = require('./routes/admin.route');
 const employeeRoutes = require('./routes/employee.route');
+const managerRoutes = require('./routes/manager.route');
 
 const app = express();
 

@@ -17,83 +17,84 @@ import {
 	ReceiptText,
 } from 'lucide-react';
 import PageLayout from '../../components/layout/PageLayout';
+import { fetchGet } from '../../utils/fetch.utils';
 
 // Mock expenses matching the server expense model
-const initialRequests = [
-	{
-		_id: 'EXP-001',
-		title: 'Flight to Conference',
-		date: '2025-09-20T10:00:00.000Z',
-		user: { _id: 'U1', name: 'Sarah Johnson', email: 'sarah@example.com' },
-		category: 'Travel',
-		paidBy: { _id: 'U1', name: 'Sarah Johnson' },
-		status: 'PENDING',
-		approverDecisions: [{ userId: 'M1', status: 'PENDING', comment: '', decidedAt: null }],
-		amount: 12500,
-		currency: 'INR',
-		description: 'Flight ticket and airport taxi',
-		receipt: 'https://via.placeholder.com/800x600.png?text=Receipt+EXP-001',
-	},
-	{
-		_id: 'EXP-002',
-		title: 'Team Lunch',
-		date: '2025-09-18T13:30:00.000Z',
-		user: { _id: 'U2', name: 'Mark Lee', email: 'mark@example.com' },
-		category: 'Food',
-		paidBy: { _id: 'U2', name: 'Mark Lee' },
-		status: 'PENDING',
-		approverDecisions: [{ userId: 'M1', status: 'PENDING', comment: '', decidedAt: null }],
-		amount: 2300,
-		currency: 'INR',
-		description: 'Team lunch after project milestone',
-		receipt: null,
-	},
-	{
-		_id: 'EXP-003',
-		title: 'Stationery Purchase',
-		date: '2025-09-15T09:00:00.000Z',
-		user: { _id: 'U3', name: 'Anita Gomez', email: 'anita@example.com' },
-		category: 'Supplies',
-		paidBy: { _id: 'U3', name: 'Anita Gomez' },
-		status: 'APPROVED',
-		approverDecisions: [
-			{
-				userId: 'M1',
-				status: 'APPROVED',
-				comment: 'Approved as per budget policy',
-				decidedAt: '2025-09-16T12:00:00.000Z',
-			},
-		],
-		amount: 780,
-		currency: 'INR',
-		description: 'Office stationery',
-		receipt: 'https://via.placeholder.com/800x600.png?text=Receipt+EXP-003',
-	},
-	{
-		_id: 'EXP-004',
-		title: 'Online Training',
-		date: '2025-09-12T15:00:00.000Z',
-		user: { _id: 'U4', name: 'John Doe', email: 'john@example.com' },
-		category: 'Training',
-		paidBy: { _id: 'U4', name: 'John Doe' },
-		status: 'REJECTED',
-		approverDecisions: [
-			{
-				userId: 'M1',
-				status: 'REJECTED',
-				comment: 'Not aligned with current training plan',
-				decidedAt: '2025-09-13T10:00:00.000Z',
-			},
-		],
-		amount: 4500,
-		currency: 'INR',
-		description: 'Course fee',
-		receipt: null,
-	},
-];
+// const initialRequests = [
+// 	{
+// 		_id: 'EXP-001',
+// 		title: 'Flight to Conference',
+// 		date: '2025-09-20T10:00:00.000Z',
+// 		user: { _id: 'U1', name: 'Sarah Johnson', email: 'sarah@example.com' },
+// 		category: 'Travel',
+// 		paidBy: { _id: 'U1', name: 'Sarah Johnson' },
+// 		status: 'PENDING',
+// 		approverDecisions: [{ userId: 'M1', status: 'PENDING', comment: '', decidedAt: null }],
+// 		amount: 12500,
+// 		currency: 'INR',
+// 		description: 'Flight ticket and airport taxi',
+// 		receipt: 'https://via.placeholder.com/800x600.png?text=Receipt+EXP-001',
+// 	},
+// 	{
+// 		_id: 'EXP-002',
+// 		title: 'Team Lunch',
+// 		date: '2025-09-18T13:30:00.000Z',
+// 		user: { _id: 'U2', name: 'Mark Lee', email: 'mark@example.com' },
+// 		category: 'Food',
+// 		paidBy: { _id: 'U2', name: 'Mark Lee' },
+// 		status: 'PENDING',
+// 		approverDecisions: [{ userId: 'M1', status: 'PENDING', comment: '', decidedAt: null }],
+// 		amount: 2300,
+// 		currency: 'INR',
+// 		description: 'Team lunch after project milestone',
+// 		receipt: null,
+// 	},
+// 	{
+// 		_id: 'EXP-003',
+// 		title: 'Stationery Purchase',
+// 		date: '2025-09-15T09:00:00.000Z',
+// 		user: { _id: 'U3', name: 'Anita Gomez', email: 'anita@example.com' },
+// 		category: 'Supplies',
+// 		paidBy: { _id: 'U3', name: 'Anita Gomez' },
+// 		status: 'APPROVED',
+// 		approverDecisions: [
+// 			{
+// 				userId: 'M1',
+// 				status: 'APPROVED',
+// 				comment: 'Approved as per budget policy',
+// 				decidedAt: '2025-09-16T12:00:00.000Z',
+// 			},
+// 		],
+// 		amount: 780,
+// 		currency: 'INR',
+// 		description: 'Office stationery',
+// 		receipt: 'https://via.placeholder.com/800x600.png?text=Receipt+EXP-003',
+// 	},
+// 	{
+// 		_id: 'EXP-004',
+// 		title: 'Online Training',
+// 		date: '2025-09-12T15:00:00.000Z',
+// 		user: { _id: 'U4', name: 'John Doe', email: 'john@example.com' },
+// 		category: 'Training',
+// 		paidBy: { _id: 'U4', name: 'John Doe' },
+// 		status: 'REJECTED',
+// 		approverDecisions: [
+// 			{
+// 				userId: 'M1',
+// 				status: 'REJECTED',
+// 				comment: 'Not aligned with current training plan',
+// 				decidedAt: '2025-09-13T10:00:00.000Z',
+// 			},
+// 		],
+// 		amount: 4500,
+// 		currency: 'INR',
+// 		description: 'Course fee',
+// 		receipt: null,
+// 	},
+// ];
 
 export default function ExpenseLog() {
-	const [requests, setRequests] = useState(initialRequests);
+	const [requests, setRequests] = useState([]);
 	const [filters, setFilters] = useState({
 		title: { value: null, matchMode: FilterMatchMode.CONTAINS },
 		'user.name': { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -105,7 +106,7 @@ export default function ExpenseLog() {
 	const [globalFilterValue, setGlobalFilterValue] = useState('');
 	const [currentPage, setCurrentPage] = useState(0);
 	const [rowsPerPage, setRowsPerPage] = useState(10);
-	const [loading, _setLoading] = useState(false);
+	const [loading, setLoading] = useState(false);
 	const toast = useRef(null);
 
 	// Approve / Reject dialog state
@@ -116,6 +117,21 @@ export default function ExpenseLog() {
 
 	useEffect(() => {
 		// Future: fetch data from API
+		const loadExpenses = async () => {
+			setLoading(true);
+			const res = await fetchGet({ pathName: 'manager/expense-logs' });
+			if (res && res.success !== false) {
+				setRequests(res.data);
+			} else {
+				toast.current.show({
+					severity: 'error',
+					summary: 'Error',
+					detail: 'Failed to load feedbacks',
+				});
+			}
+			setLoading(false);
+		};
+		loadExpenses();
 	}, []);
 
 	const onGlobalFilterChange = (e) => {

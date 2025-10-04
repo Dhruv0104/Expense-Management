@@ -12,6 +12,8 @@ import AddUser from './pages/admin/AddUser';
 import ApprovalRules from './pages/admin/ApprovalRules';
 import ManagerDashboard from './pages/manager/ManagerDashboard';
 import EmployeeDashbaord from './pages/employee/Dashboard';
+import ProfilePage from './pages/manager/Profile';
+import EmployeeProfilePage from './pages/employee/Profile';
 
 const routes = createBrowserRouter([
 	{
@@ -57,6 +59,10 @@ const routes = createBrowserRouter([
 				path: 'expense-log',
 				element: <ExpenseLog />,
 			},
+			{
+				path: 'profile',
+				element: <ProfilePage />,
+			},
 		],
 	},
 	{
@@ -66,6 +72,7 @@ const routes = createBrowserRouter([
 			{ path: 'dashboard', element: <EmployeeDashbaord /> },
 			{ path: 'submit-expense', element: <SubmitExpense /> },
 			{ path: 'expenses-history', element: <ExpensesHistory /> },
+			{ path: 'profile', element: <EmployeeProfilePage /> },
 		],
 	},
 	{

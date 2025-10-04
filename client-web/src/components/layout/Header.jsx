@@ -11,12 +11,12 @@ export default function Header({ onToggleSidebar }) {
 	const role = localStorage.getItem('role');
 
 	function handleProfileClick() {
-		if (role === 'STUDENT') {
-			navigate('/student/profile');
-		} else if (role === 'FACULTY') {
-			navigate('/faculty/profile');
-		} else if (role === 'DEPARTMENT-HEAD') {
-			navigate('/hod/profile');
+		if (role === 'Admin') {
+			navigate('/admin/profile');
+		} else if (role === 'Manager') {
+			navigate('/manager/profile');
+		} else if (role === 'Employee') {
+			navigate('/employee/profile');
 		}
 	}
 
