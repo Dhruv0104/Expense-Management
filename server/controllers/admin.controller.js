@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const md5 = require('md5');
 const userModel = require('../models/user.model');
-// const companyModel = require('../models/company.model');
+const companyModel = require('../models/company.model');
 const { sendResetPasswordEmail, sendPassword } = require('../utils/mailer');
 const approvalRuleModel = require('../models/approvalRule.model');
 const expenseModel = require('../models/expense.model');
@@ -192,7 +192,7 @@ async function addRules(req, res) {
 async function getDashboardStats(req, res) {
 	try {
 		const companyId = res.locals.user.companyId;
-
+		const company = await companyModel.findById(companyId);
 		const totalUsers = await userModel.countDocuments({ companyId, isActive: true });
 		const totalManagers = await userModel.countDocuments({
 			companyId,
@@ -246,6 +246,7 @@ async function getDashboardStats(req, res) {
 				totalApprovedRequests,
 				totalRejectedRequests,
 				totalExpense,
+				company: company.defaultCurrency,
 			},
 		});
 	} catch (err) {
